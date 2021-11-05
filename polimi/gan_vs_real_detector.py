@@ -34,6 +34,7 @@ class Detector:
         for i, l in enumerate('ABCDE'):
             # Instantiate and load network
             network_class = getattr(architectures, 'EfficientNetB4')
+
             net = network_class(n_classes=2, pretrained=False).eval().to(self.device)
             print(f'Loading model {l}...')
             state_tmp = torch.load(self.weights_path_list[i], map_location='cpu')
@@ -116,6 +117,7 @@ class Detector:
 
 
 def main():
+    print("In gan_vs_real_detector main function")
     parser = argparse.ArgumentParser()
     parser.add_argument('--img_path', help='Path to the test image', required=True)
     args = parser.parse_args()
