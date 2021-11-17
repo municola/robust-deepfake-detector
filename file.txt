@@ -1,0 +1,69 @@
+Main Research Question
+======================
+1. Show that Polimi is not robust
+2. Present a reliable descriminator
+
+
+Workload
+===============
+1. Get "normal" Dataset (256x256) to train our discriminator
+	TRAINING/VALIDATION
+	- FFHQ 50k (reals) (+CelebHQ)
+	- Create Fake Dataset: 50k(+More) StyleGan2 -> Polybox
+	TEST
+	- FFHQ 20k (reals)
+	- Create Fake Dataset: StyleGan3 20k -> Polybox
+	
+2. Write Descriminator (Pytroch)
+	- RestNet/EfficientNetv4/Inception/VGG + Layer (Fine-tuning)
+	- Custom CNN + pooling
+	
+3. Evaluate our Discriminator on the "normal" TEST dataset
+
+4. Evaluate polimi on the "normal" TEST dataset (Kinda done already in their paper)
+	- For reproducability
+	- Probably better score than our discriminator
+	
+5. Generate our Adverserisals dataset (on "normal" Datset TEST)
+	- Adverserials should be on the Fakes+Reals TEST dataset
+
+6. Evaulate Polimi detector on our "adverserial" dataset (Hope for bad accuracy)
+	- Here we see how we will write the storyline ("Better than you think", "Worse than you think")
+
+7. Evaluate our discriminator oun our "adverserial" dataset (Probably also bad accuracy)
+	
+8. Averserial Training on our discriminator with the "normal" TRAINING Dataset.
+	- Try different attacks for training
+
+9. Evaluation of our discriminator (After adverserial) on our TEST "adverserial" dataset
+	- Hope be better than before
+	- Here we want to see that our ROC score is higher than Polimi score
+
+10. Write Final report (4. Januar)
+
+
+Timeline
+===============
+1: 15.Nov - 21.Nov : Kamm/Alex/Mo/Nici: Onboarding
+2: 22.Nov - 28.Nov : Kamm/Alex: Dataset(1), Mo/Nici: Discriminator(2)
+3: 29.Nov - 5.Dez  : Evaluation(3,4), AdverserialGerneration(5)
+4: 6.Dez  - 12.Dez : 
+5: 13.Dez - 19.Dez : AgainEvaluation(6,7), AdverserialTraining(8)
+6: 20.Dez - 26.Dez : AgainAgainEvaluation(9)
+Semesterend
+7: 27.Dez - 2.Jan  : Writing Paper
+8: 2.Jan  - 4.Jan  : Buffer
+
+
+
+Concerns/Future Work
+=====================
+- Performance/Accuracy might also depend on image resolutoion. We expect to be better with higher resolution. 
+  Here we just do proof of concept
+	
+
+
+
+
+
+
