@@ -45,20 +45,17 @@
 
 10. Write final report (early deadline: 4. Jan)
 
-
 # Timeline
 
 - 15.Nov - 21.Nov : Kamm/Alex/Mo/Nici: Onboarding
-- 22.Nov - 28.Nov : Kamm/Alex: Dataset(1), Mo/Nici: Discriminator(2)
-- 29.Nov - 5.Dez  : Evaluation(3,4), AdverserialGerneration(5)
+- 22.Nov - 28.Nov : Kamm/Alex: Data sets (1); Mo/Nici: Discriminator (2)
+- 29.Nov - 5.Dez  : Evaluation (3, 4); AdversarialGeneration (5)
 - 6.Dez  - 12.Dez : 
-- 13.Dez - 19.Dez : AgainEvaluation(6,7), AdverserialTraining(8)
-- 20.Dez - 26.Dez : AgainAgainEvaluation(9)
+- 13.Dez - 19.Dez : AgainEvaluation (6, 7); AdversarialTraining (8)
+- 20.Dez - 26.Dez : AgainAgainEvaluation (9)
 - Semester end
 - 27.Dez - 2.Jan  : Writing Paper
 - 2.Jan  - 4.Jan  : Buffer
-
-
 
 # Concerns/Future Work
 
