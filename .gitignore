@@ -1,2 +1,5 @@
 /data
 *.pth
+**/data
+**/*.pt
+polimi/*.pdf

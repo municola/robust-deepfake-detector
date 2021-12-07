@@ -1,5 +1,11 @@
 # Fake image detectors are worse than you think
 ## Installation
+### Attacks
+1. pip install advertorch
+2. Add the zero_gradients(x) function to advertorch/attacks/utils.py (Carful: Do this in your corresponding conda envrionment!!s)
+3. Replace line 14 in advertorch/attacks/fast_adaptive_boundary.py with: "from advertorch.attacks.utils import zero_gradients"
+
+
 ### Installation Polimi for CPU & "old" GPU
 1. Create and activate the conda environment
 ```bash
@@ -26,6 +32,11 @@ pip install pytorchcv
 ```bash
 wget https://www.dropbox.com/s/g1z2u8wl6srjh6v/weigths.zip
 unzip weigths.zip
+```
+
+## Further Installations for our Descriminator
+```bash
+pip install pytorch-lightning
 ```
 
 ## Run in Visual Studio Code

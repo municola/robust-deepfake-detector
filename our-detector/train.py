@@ -1,7 +1,4 @@
-import os
 import torch
-import random
-import numpy as np
 from torch.utils.data import DataLoader
 import torch
 import torchvision
@@ -23,10 +20,13 @@ def main(random_state=1234):
     learning_rate = 1e-3
     patience = 3
 
-    user = "Mo"
+    user = "Nici"
     if user=="Mo":
         data_dir_train = "/home/moritz/Documents/ETH/DL/Data/Train"
         data_dir_val = "/home/moritz/Documents/ETH/DL/Data/Validation"
+    if user=="Nici":
+        data_dir_train="/home/nicolas/git/robust-deepfake-detector/our-detector/data/train"
+        data_dir_val = "/home/nicolas/git/robust-deepfake-detector/our-detector/data/val"
 
     transform = transforms.Compose([
         transforms.ToTensor()
@@ -62,8 +62,6 @@ def main(random_state=1234):
     model.load_state_dict(torch.load('./our-detector/checkpoints/checkpoint.pt'))
         
     
-    
-
 def train(model, optimizer, train_data_loader, epoch, device):
     model.train()
     lossSum = 0
@@ -73,7 +71,7 @@ def train(model, optimizer, train_data_loader, epoch, device):
             data, label = data.to(device), label.to(device)
             optimizer.zero_grad()
             output = model(data)
-            loss = F.binary_cross_entropy(torch.sigmoid(output), torch.unsqueeze(label.to(torch.float32), dim=1))
+            loss = F.binary_cross_entropy(output, torch.unsqueeze(label.to(torch.float32), dim=1))
             loss.backward()
             optimizer.step()
 
@@ -90,16 +88,13 @@ def validation(model, val_data_loader, device):
             for batch_idx, (data, label) in enumerate(tepoch):
                 data, label = data.to(device), label.to(device)
                 output = model(data)
-                val_loss += F.binary_cross_entropy(torch.sigmoid(output), torch.unsqueeze(label.to(torch.float32), dim=1)).item()
+                val_loss += F.binary_cross_entropy(output, torch.unsqueeze(label.to(torch.float32), dim=1)).item()
                 tepoch.set_description("Validation")
                 tepoch.set_postfix(loss=(val_loss)/(batch_idx+1))
                 predictions = output>=0
                 correct += (predictions.squeeze() == label).sum().item()
     return correct, (val_loss)/(batch_idx+1)   
                 
-                
-
-
 
 if __name__ == "__main__":
     main(random_state=1234)

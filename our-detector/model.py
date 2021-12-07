@@ -29,7 +29,5 @@ class DetectorNet(nn.Module):
         x = torch.flatten(x, 1)
         # [B, 65’536]
         x = self.linear1(x)
+        x = torch.sigmoid(x)
         return x
-
-
-
