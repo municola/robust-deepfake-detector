@@ -20,13 +20,10 @@ def main(random_state=1234):
     learning_rate = 1e-3
     patience = 3
 
-    user = "Nici"
-    if user=="Mo":
-        data_dir_train = "/home/moritz/Documents/ETH/DL/Data/Train"
-        data_dir_val = "/home/moritz/Documents/ETH/DL/Data/Validation"
-    if user=="Nici":
-        data_dir_train="/home/nicolas/git/robust-deepfake-detector/our-detector/data/train"
-        data_dir_val = "/home/nicolas/git/robust-deepfake-detector/our-detector/data/val"
+    user = "Mo"
+    data_dir_train = get_path(user, "train")
+    data_dir_val = get_path(user, "val")
+    
 
     transform = transforms.Compose([
         transforms.ToTensor()
@@ -34,11 +31,13 @@ def main(random_state=1234):
         # transforms.Normalize((0.1307,), (0.3081,))
     ])
 
-    # 0: Fake, 1: Real
+    # 0: Real, 1: Fake
     train_data = torchvision.datasets.ImageFolder(root=data_dir_train,transform = transform)
+    assert train_data.class_to_idx == {'FFHQ_40K_Train_256': 0, 'Stylegan2_40K_Train_256': 1}
     train_data_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True)
 
     val_data = torchvision.datasets.ImageFolder(root=data_dir_val,transform = transform)
+    assert val_data.class_to_idx == {'FFHQ_10K_Val_256': 0, 'Stylegan2_10K_Val_256': 1}
     val_data_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=True)
 
     model = DetectorNet().to(device)

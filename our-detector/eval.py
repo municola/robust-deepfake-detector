@@ -10,10 +10,10 @@ from utils import load_model, load_data, get_path
 
 def main():
 
-    BATCH_SIZE = 10
-    model, model_name, device = load_model("DetectorNet", "checkpoints/checkpoint.pt")
+    BATCH_SIZE = 100
+    model, model_name, device = load_model("DetectorNet", "our-detector/checkpoints/checkpoint.pt")
 
-    test_path = get_path("Alex", "test")
+    test_path = get_path("Mo", "test")
     test_data = load_data(test_path, BATCH_SIZE)
 
     evaluate(model, model_name, test_data, device)
@@ -30,8 +30,8 @@ def evaluate(model, model_name, dataloader, device):
         for X, y in dataloader:
             X, y = X.to(device), y.to(device)
             out = model(X)
-            y_pred = np.append(y_pred, out.numpy()) #proba class 1
-            y_true = np.append(y_true, y.numpy())
+            y_pred = np.append(y_pred, out.cpu().numpy()) #proba class 1
+            y_true = np.append(y_true, y.cpu().numpy())
 
     assert y_true.shape == y_pred.shape, "y_true, y_pred of unequal length."
     print(f"Performance metrics for {model_name}:")
@@ -50,7 +50,7 @@ def roc_auc(y_true, y_pred, model_name, plot=True):
         fpr, tpr, thr = roc_curve(y_true, y_pred)
         roc_plot = RocCurveDisplay(fpr=fpr, tpr=tpr, roc_auc=auc,
                                    estimator_name=model_name,
-                                   pos_label=1)
+                                   )
         roc_plot.plot()
 
 

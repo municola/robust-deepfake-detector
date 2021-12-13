@@ -141,12 +141,13 @@ def load_data(data_path, batch_size):
      ])
 
     data = ImageFolder(root=data_path, transform=transform)
+    assert data.class_to_idx == {'FFHQ_20K_Test_256': 0, 'Stylegan3_20K_Test_256': 1}
     dataloader = DataLoader(data, batch_size=batch_size, shuffle=True)
 
     assert len(np.unique(data.targets)) == 2, "More than two classes."
     print("\nDataset loaded")
     print("Dataset size:", len(dataloader.dataset))
-    print("Class mapping:", data.class_to_idx) # 0: Fake, 1: Real
+    print("Class mapping:", data.class_to_idx) # 0: Real, 1: Fake
     print(f"Batch size: {batch_size}")
 
     return dataloader
@@ -163,7 +164,7 @@ def get_path(user_name, data_name):
         elif data_name == "val":
             path = "/home/moritz/Documents/ETH/DL/Data/Validation"
         elif data_name == "test":
-            path = "/home/moritz/Documents/ETH/DL/Data/test"
+            path = "/home/moritz/Documents/ETH/DL/Data/Test"
         else:
             raise ValueError("Need one of 'train', 'val', 'test'")
 
