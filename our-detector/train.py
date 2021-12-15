@@ -1,99 +1,109 @@
 import torch
-from torch.utils.data import DataLoader
-import torch
-import torchvision
-from torchvision import transforms
-from model import DetectorNet
 import torch.optim as optim
 import torch.nn.functional as F
 from tqdm import tqdm
-from utils import *
 
-def main(random_state=1234):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print("Using: ", device)
+from model import DetectorNet
+from utils import model_summary, set_seed, EarlyStopping, load_data, get_path
 
-    set_seed(random_state)
 
-    BATCH_SIZE = 10
-    num_epochs = 10
+def main(random_seed=1234, device=None):
+    """"Main training loop for discriminator model"""
+
+    if device == None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"\nUsing device: {device}")
+
+    set_seed(random_seed)
+    print(f"Set random seed: {random_seed}")
+
+    # PATHS
+    user = "Alex"
+    #path_model = "./our-detector/checkpoints/checkpoint.pt"
+    path_model = "checkpoints/checkpoint2.pt"
+
+    # HYPERPARAMS
+    batch_size = 10
+    epochs = 3
     learning_rate = 1e-3
-    patience = 3
+    patience = 3 # early stopping wait time
 
-    user = "Mo"
-    data_dir_train = get_path(user, "train")
-    data_dir_val = get_path(user, "val")
-    
+    # Load data
+    print("\nTrain:")
+    train_path = get_path(user, "train")
+    train_dataloader = load_data(train_path, batch_size)
+    print("\nVal:")
+    val_path = get_path(user, "val")
+    val_dataloader = load_data(val_path, batch_size)
 
-    transform = transforms.Compose([
-        transforms.ToTensor()
-        # Maybe Normalize !!!!
-        # transforms.Normalize((0.1307,), (0.3081,))
-    ])
-
-    # 0: Real, 1: Fake
-    train_data = torchvision.datasets.ImageFolder(root=data_dir_train,transform = transform)
-    assert train_data.class_to_idx == {'FFHQ_40K_Train_256': 0, 'Stylegan2_40K_Train_256': 1}
-    train_data_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True)
-
-    val_data = torchvision.datasets.ImageFolder(root=data_dir_val,transform = transform)
-    assert val_data.class_to_idx == {'FFHQ_10K_Val_256': 0, 'Stylegan2_10K_Val_256': 1}
-    val_data_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=True)
-
+    # Model
     model = DetectorNet().to(device)
-    model_summary(model)
+    model_summary(model) # nr of params
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-    early_stopping = EarlyStopping(patience=patience, verbose=True, path='./our-detector/checkpoints/checkpoint.pt')
+    early_stopping = EarlyStopping(patience=patience, verbose=True, path=path_model)
 
-    for epoch in range(0, num_epochs):
-        train(model, optimizer, train_data_loader, epoch, device)
-        val_num_correct, val_loss = validation(model, val_data_loader, device)
-        print(f"Validation Loss in Epoch {epoch}: {val_loss:.6f}")
-        acc = val_num_correct/len(val_data)
-        print(f"Validation Accuracy in Epoch {epoch}: {acc:.6f}")
-        # Checking Early Stopping
-        early_stopping(val_loss, model)
+    # Main loop
+    for epoch in range(epochs):
+        train(model, optimizer, train_dataloader, epoch, device)
+        loss_val = validation(model, val_dataloader, epoch, device)
+
+        # check early stopping
+        early_stopping(loss_val, model)
         if early_stopping.early_stop:
-            print("Early stopping")
+            print(f"Early stopping at epoch {epoch}")
             break
         
     # load the last checkpoint with the best model
-    model.load_state_dict(torch.load('./our-detector/checkpoints/checkpoint.pt'))
+    model.load_state_dict(torch.load(path_model))
         
     
-def train(model, optimizer, train_data_loader, epoch, device):
-    model.train()
-    lossSum = 0
+def train(model, optimizer, dataloader, epoch, device):
+    """"Training loop over batches for one epoch"""
 
-    with tqdm(train_data_loader) as tepoch:
-        for batch_idx, (data,label) in enumerate(tepoch):
-            data, label = data.to(device), label.to(device)
+    model.train()
+    loss_sum = 0
+    with tqdm(dataloader) as tepoch:
+        for batch, (X, y) in enumerate(tepoch):
+            X, y = X.to(device), y.to(device)
+            out = model(X)
+            loss = F.binary_cross_entropy(out, torch.unsqueeze(y.to(torch.float32), dim=1))
+
             optimizer.zero_grad()
-            output = model(data)
-            loss = F.binary_cross_entropy(output, torch.unsqueeze(label.to(torch.float32), dim=1))
             loss.backward()
             optimizer.step()
 
-            lossSum += loss.item()
+            loss_sum += loss.item()
             tepoch.set_description(f"Epoch {epoch}")
-            tepoch.set_postfix(loss=lossSum/((batch_idx+1)))
+            tepoch.set_postfix(loss = loss_sum/(batch+1))
 
-def validation(model, val_data_loader, device):
+
+def validation(model, dataloader, epoch, device, binary_thresh=0.5):
+    """"Validation loop over batches for one epoch"""
+
     model.eval()
-    val_loss = 0
-    correct = 0
+    loss_sum, correct = 0, 0
     with torch.no_grad():
-        with tqdm(val_data_loader) as tepoch:
-            for batch_idx, (data, label) in enumerate(tepoch):
-                data, label = data.to(device), label.to(device)
-                output = model(data)
-                val_loss += F.binary_cross_entropy(output, torch.unsqueeze(label.to(torch.float32), dim=1)).item()
+        with tqdm(dataloader) as tepoch:
+            for batch, (X, y) in enumerate(tepoch):
+                X, y = X.to(device), y.to(device)
+                out = model(X)
+                loss = F.binary_cross_entropy(out, torch.unsqueeze(y.to(torch.float32), dim=1))
+
+                loss_sum += loss.item()
+                loss_val = loss_sum/(batch+1)
                 tepoch.set_description("Validation")
-                tepoch.set_postfix(loss=(val_loss)/(batch_idx+1))
-                predictions = output>=0
-                correct += (predictions.squeeze() == label).sum().item()
-    return correct, (val_loss)/(batch_idx+1)   
-                
+                tepoch.set_postfix(loss = loss_val)
+
+                out[out >= binary_thresh] = 1
+                out[out < binary_thresh] = 0
+                correct += (out.squeeze() == y).sum().item()
+
+            print(f"Val loss in epoch {epoch}: {loss_val:.6f}")
+            acc = correct/len(dataloader.dataset)
+            print(f"Val acc in epoch {epoch}: {acc:.6f}")
+
+    return loss_val
+
 
 if __name__ == "__main__":
-    main(random_state=1234)
+    main()

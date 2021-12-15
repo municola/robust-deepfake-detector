@@ -1,22 +1,21 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 class DetectorNet(nn.Module):
     def __init__(self):
         super(DetectorNet, self).__init__()
-        print("Initialize DetectorNet")
-        self.conv1 = nn.Sequential(nn.Conv2d(3, 16, 3, 1,padding="same"),
+        print("\nInitialized DetectorNet")
+
+        self.conv1 = nn.Sequential(nn.Conv2d(3, 16, 3, 1, padding="same"),
                      nn.ReLU(),
                      nn.MaxPool2d(2))
-        self.conv2 = nn.Sequential(nn.Conv2d(16, 16, 3, 1,padding="same"),
+        self.conv2 = nn.Sequential(nn.Conv2d(16, 16, 3, 1, padding="same"),
                      nn.ReLU(),
                      nn.MaxPool2d(2))                     
-        self.conv3 = nn.Sequential(nn.Conv2d(16, 64, 3, 1,padding="same"),
+        self.conv3 = nn.Sequential(nn.Conv2d(16, 64, 3, 1, padding="same"),
                      nn.ReLU(),
                      nn.MaxPool2d(2))
         self.linear1  = nn.Linear(65536, 1)
-        
 
     def forward(self, x):
         # [B, 3, 256, 256]
@@ -28,6 +27,7 @@ class DetectorNet(nn.Module):
         # [B, 64, 32, 32]
         x = torch.flatten(x, 1)
         # [B, 65’536]
-        x = self.linear1(x)
-        x = torch.sigmoid(x)
-        return x
+        logits = self.linear1(x)
+        out = torch.sigmoid(logits)
+
+        return out

@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import numpy as np
 import torch
 from sklearn.metrics import roc_curve, roc_auc_score, RocCurveDisplay, accuracy_score
@@ -10,13 +7,17 @@ from utils import load_model, load_data, get_path
 
 def main():
 
-    BATCH_SIZE = 100
-    model, model_name, device = load_model("DetectorNet", "our-detector/checkpoints/checkpoint.pt")
+    # PARAMS
+    user = "Alex"
+    model_name = "DetectorNet" #"PolimiNet"
+    path_model = "checkpoints/checkpoint.pt"
+    batch_size = 10
 
-    test_path = get_path("Mo", "test")
-    test_data = load_data(test_path, BATCH_SIZE)
+    model, model_name, device = load_model(model_name, path_model)
+    test_path = get_path(user, "test")
+    test_dataloader = load_data(test_path, batch_size)
 
-    evaluate(model, model_name, test_data, device)
+    evaluate(model, model_name, test_dataloader, device)
 
 
 def evaluate(model, model_name, dataloader, device):
@@ -49,7 +50,7 @@ def roc_auc(y_true, y_pred, model_name, plot=True):
     if plot:
         fpr, tpr, thr = roc_curve(y_true, y_pred)
         roc_plot = RocCurveDisplay(fpr=fpr, tpr=tpr, roc_auc=auc,
-                                   estimator_name=model_name,
+                                   estimator_name=model_name
                                    )
         roc_plot.plot()
 
