@@ -24,7 +24,9 @@ def main():
     epochs = config['epochs_adversarial_training']
     learning_rate = config['learning_rate']
     patience = config['early_stopping_patience']
-    model_name = config['model_name']
+
+    # Model is always Watson (After training it becomes Sherlock)
+    model_name = 'Watson'
 
     # Set seed
     set_seed(seed)

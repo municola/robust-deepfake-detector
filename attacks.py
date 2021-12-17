@@ -34,7 +34,7 @@ def FGSM_attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.1):
 
     return X, y
 
-def generateAdverserials(model, data_loader, output_dir, attack_type='PGD', device='cpu'):
+def generateAdversarials(model, data_loader, output_dir, attack_type='PGD', device='cpu'):
     """Generates Adverserials (for a given model and attack), then saves them to the output folder.
 
     Args:

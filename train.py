@@ -19,11 +19,13 @@ def main():
     seed = config['seed']
     train_path = config['train_path']
     val_path = config['val_path']
-    model_name = config['model_name']
     batch_size = config['batch_size']
     epochs = config['epochs_adversarial_training']
     learning_rate = config['learning_rate']
     patience = config['early_stopping_patience']
+
+    # Model is always Watson
+    model_name = 'Watson'
 
     # Set seed
     set_seed(seed)

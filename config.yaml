@@ -1,4 +1,4 @@
-model_name: "Sherlock" # Watson, Polimi
+model_name: "Watson" # Watson, Sherlock, Polimi
 
 path_model_watson: "./detective/checkpoints/checkpoint_watson.pt"
 path_model_sherlock: "./detective/checkpoints/checkpoint_sherlock.pt"
@@ -12,3 +12,5 @@ batch_size: 8
 learning_rate: 0.001
 epochs_adversarial_training: 20
 early_stopping_patience: 3
+
+adversarial_attack_type: "FGSM" # LinfPGD, PGD, FGSM
