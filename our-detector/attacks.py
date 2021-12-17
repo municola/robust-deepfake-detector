@@ -6,6 +6,7 @@ from torchvision.utils import save_image
 from torch.utils.data import DataLoader
 from advertorch.attacks import LinfPGDAttack, PGDAttack, GradientSignAttack
 from tqdm import tqdm
+import os
 
 from model import DetectorNet
 from utils import *
@@ -71,6 +72,11 @@ def generateAdverserials(model, data_loader, output_dir, attack_type='PGD', devi
             else:
                 raise NotImplementedError("This type of attack has not been implemented yet")
 
+            pathFake = output_dir + '/fake'
+            pathReal = output_dir + '/real'
+            os.makedirs(pathFake, exist_ok=True)
+            os.makedirs(pathReal, exist_ok=True)
+
             # Save images
             for i in range(adv_untargeted[0].shape[0]):
                 if imageCount > 99999:
@@ -86,39 +92,33 @@ def generateAdverserials(model, data_loader, output_dir, attack_type='PGD', devi
                     raise ValueError(f"Expected label value of 0 or 1. But received {adv_untargeted[1][i]}")
 
 
-# Get the Model
-# TODO: Move this to a separate File
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = DetectorNet().to(device)
-model.load_state_dict(torch.load('checkpoints/checkpoint.pt'))
-
-
 # Create Dataloader
 # TODO: Have a separate File for Data Loaders
-BATCH_SIZE = 10
-
+batch_size = 10
 user = "Nici"
-if user=="Mo":
-    data_dir_test = "/home/moritz/Documents/ETH/DL/Data/test"
-if user=="Nici":
-    data_dir_test="/home/nicolas/git/robust-deepfake-detector/our-detector/data/test"
+path_model='./our-detector/checkpoints/checkpoint.pt'
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+path = get_path(user, 'test')
+model, _, _ = load_model('DetectorNet', path_model)
 
 transform = transforms.Compose([
     transforms.ToTensor()
     # Maybe Normalize !!!!
 ])
 
-# 0: Fake, 1: Real
-test_data = torchvision.datasets.ImageFolder(root=data_dir_test,transform = transform)
-test_data_loader = DataLoader(test_data, batch_size=BATCH_SIZE, shuffle=True)
+# 1: Fake, 0: Real
+test_data = torchvision.datasets.ImageFolder(root=path,transform = transform)
+test_data_loader = DataLoader(test_data, batch_size=batch_size, shuffle=True)
 
 
 # Generate the Adverserials
 # TODO: Call this from a separate File
+path = os.path.dirname(path) + '/adversarials'
 generateAdverserials(
     model = model, 
     data_loader = test_data_loader, 
-    output_dir = "data/adverserials",
+    output_dir = path,
     attack_type='LinfPGD',
     device = device
 )
