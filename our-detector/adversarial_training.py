@@ -65,13 +65,14 @@ def train(model, optimizer, dataloader, epoch, device):
     with tqdm(dataloader) as tepoch:
         for batch, (X, y) in enumerate(tepoch):
             X, y = X.to(device), y.to(device)
-            loss_fn = F.binary_cross_entropy()
+            y = torch.unsqueeze(y.to(torch.float32), dim=1)
+            loss_fn = F.binary_cross_entropy
 
             # Generate the adversarial
             X_adv, _ = PGD_attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.03, nb_iter=10)
 
             out = model(X_adv)
-            loss = loss_fn(out, torch.unsqueeze(y.to(torch.float32), dim=1))
+            loss = loss_fn(out, y)
 
             optimizer.zero_grad()
             loss.backward()
@@ -91,7 +92,7 @@ def validation(model, dataloader, epoch, device, binary_thresh=0.5):
         with tqdm(dataloader) as tepoch:
             for batch, (X, y) in enumerate(tepoch):
                 X, y = X.to(device), y.to(device)
-                loss_fn = F.binary_cross_entropy()
+                loss_fn = F.binary_cross_entropy
 
                 # Generate the adversarial
                 X_adv, _ = PGD_attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.03, nb_iter=10)

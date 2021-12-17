@@ -8,23 +8,22 @@ from advertorch.attacks import LinfPGDAttack, PGDAttack, GradientSignAttack
 from tqdm import tqdm
 import os
 
-from model import DetectorNet
 from utils import *
 
-def PGD_attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.1):
+def PGD_attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.1, nb_iter=40):
     adversary = PGDAttack(
         model, loss_fn=loss_fn, eps=eps,
-        nb_iter=1, eps_iter=eps_iter, rand_init=True, clip_min=0.0, clip_max=1.0,
+        nb_iter=nb_iter, eps_iter=eps_iter, rand_init=True, clip_min=0.0, clip_max=1.0,
         targeted=False)
 
     X = adversary.perturb(X, y)
 
     return X, y
 
-def LinfPGD_Attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.1):
+def LinfPGD_Attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.1, nb_iter=40):
     adversary = LinfPGDAttack(
         model, loss_fn=loss_fn, eps=eps,
-        nb_iter=1, eps_iter=eps_iter, rand_init=True, clip_min=0.0, clip_max=1.0,
+        nb_iter=nb_iter, eps_iter=eps_iter, rand_init=True, clip_min=0.0, clip_max=1.0,
         targeted=False)
 
     X = adversary.perturb(X, y)
@@ -90,35 +89,3 @@ def generateAdverserials(model, data_loader, output_dir, attack_type='PGD', devi
                     imageCount += 1
                 else:
                     raise ValueError(f"Expected label value of 0 or 1. But received {adv_untargeted[1][i]}")
-
-
-# Create Dataloader
-# TODO: Have a separate File for Data Loaders
-batch_size = 10
-user = "Nici"
-path_model='./our-detector/checkpoints/checkpoint.pt'
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-path = get_path(user, 'test')
-model, _, _ = load_model('DetectorNet', path_model)
-
-transform = transforms.Compose([
-    transforms.ToTensor()
-    # Maybe Normalize !!!!
-])
-
-# 1: Fake, 0: Real
-test_data = torchvision.datasets.ImageFolder(root=path,transform = transform)
-test_data_loader = DataLoader(test_data, batch_size=batch_size, shuffle=True)
-
-
-# Generate the Adverserials
-# TODO: Call this from a separate File
-path = os.path.dirname(path) + '/adversarials'
-generateAdverserials(
-    model = model, 
-    data_loader = test_data_loader, 
-    output_dir = path,
-    attack_type='LinfPGD',
-    device = device
-)
