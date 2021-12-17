@@ -104,8 +104,10 @@ class EarlyStopping:
 
 def load_model(model_name, config, device):
     """"Load specified model from checkpoint onto device."""
-
-    if model_name == "Watson":
+    if model_name == "Lestrade":
+        path_model = None
+        model = Detective().to(device)
+    elif model_name == "Watson":
         path_model = config['path_model_watson']
         model = Detective().to(device)
         model.load_state_dict(torch.load(path_model, map_location=device))
@@ -116,7 +118,7 @@ def load_model(model_name, config, device):
     elif model_name == "Polimi":
         raise NotImplementedError("Missing Polimi")
     else:
-        raise ValueError("Need to specify 'Sherlock', 'Watson' or 'Polimi'")
+        raise ValueError("Need to specify 'Lestrade', 'Sherlock', 'Watson' or 'Polimi'")
 
     print(f"Loaded model: {model_name} onto device: {device}")
 

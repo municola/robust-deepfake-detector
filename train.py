@@ -20,12 +20,13 @@ def main():
     train_path = config['train_path']
     val_path = config['val_path']
     batch_size = config['batch_size']
-    epochs = config['epochs_adversarial_training']
+    epochs = config['epochs_training']
     learning_rate = config['learning_rate']
     patience = config['early_stopping_patience']
+    path_model = config['path_model_watson']
 
-    # Model is always Watson
-    model_name = 'Watson'
+    # Model is always Lestrade (After training it becomes Watson)
+    model_name = 'Lestrade'
 
     # Set seed
     set_seed(seed)
@@ -41,7 +42,7 @@ def main():
     val_dataloader = load_data(val_path, batch_size)
 
     # Model
-    model, _, path_model, _ = load_model(model_name, config, device)
+    model, _, _, _ = load_model(model_name, config, device)
     model_summary(model)
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     early_stopping = EarlyStopping(patience=patience, verbose=True, path=path_model)

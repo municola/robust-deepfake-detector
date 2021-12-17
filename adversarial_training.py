@@ -24,7 +24,8 @@ def main():
     epochs = config['epochs_adversarial_training']
     learning_rate = config['learning_rate']
     patience = config['early_stopping_patience']
-
+    path_model = config['path_model_sherlock']
+    
     # Model is always Watson (After training it becomes Sherlock)
     model_name = 'Watson'
 
@@ -42,7 +43,7 @@ def main():
     val_dataloader = load_data(val_path, batch_size)
 
     # Model
-    model, _, path_model, _ = load_model(model_name, config, device)
+    model, _, _, _ = load_model(model_name, config, device)
     model_summary(model) # nr of params
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     early_stopping = EarlyStopping(patience=patience, verbose=True, path=path_model)
@@ -77,6 +78,8 @@ def train(model, optimizer, dataloader, epoch, device):
             # Calculate Epsilon
             if epoch <= 9:
                 eps = 0.001 * (epoch+1)
+            else:
+                eps = 0.01
 
             # Generate the adversarial
             model.eval()
@@ -111,6 +114,8 @@ def validation(model, dataloader, epoch, device, binary_thresh=0.5):
             # Calculate Epsilon
             if epoch <= 9:
                 eps = 0.001 * (epoch+1)
+            else:
+                eps = 0.01
 
             # Generate the adversarial
             X_adv, _ = FGSM_attack(X, y, model, loss_fn, eps=eps)
