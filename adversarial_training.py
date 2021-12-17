@@ -51,11 +51,12 @@ def main():
         loss_val = validation(model, val_dataloader, epoch, device)
 
         # check early stopping
-        early_stopping(loss_val, model)
-        if early_stopping.early_stop:
-            print(f"Early stopping at epoch {epoch}")
-            break
-        
+        if epoch >= 9:
+            early_stopping(loss_val, model)
+            if early_stopping.early_stop:
+                print(f"Early stopping at epoch {epoch}")
+                break
+            
     # load the last checkpoint with the best model
     model.load_state_dict(torch.load(path_model))
         
@@ -64,15 +65,20 @@ def train(model, optimizer, dataloader, epoch, device):
     """"Training loop over batches for one epoch"""
 
     loss_sum = 0
+    eps = None
     with tqdm(dataloader) as tepoch:
         for batch, (X, y) in enumerate(tepoch):
             X, y = X.to(device), y.to(device)
             y = torch.unsqueeze(y.to(torch.float32), dim=1)
             loss_fn = F.binary_cross_entropy
 
+            # Calculate Epsilon
+            if epoch <= 9:
+                eps = 0.001 * (epoch+1)
+
             # Generate the adversarial
             model.eval()
-            X_adv, _ = FGSM_attack(X, y, model, loss_fn, eps=0.001)
+            X_adv, _ = FGSM_attack(X, y, model, loss_fn, eps=eps)
             model.train()
 
             out = model(X_adv)
@@ -92,6 +98,7 @@ def validation(model, dataloader, epoch, device, binary_thresh=0.5):
 
     model.eval()
     loss_sum, correct = 0, 0
+    eps = None
 
     with tqdm(dataloader) as tepoch:
         for batch, (X, y) in enumerate(tepoch):
@@ -99,8 +106,12 @@ def validation(model, dataloader, epoch, device, binary_thresh=0.5):
             loss_fn = F.binary_cross_entropy
             y = torch.unsqueeze(y.to(torch.float32), dim=1)
 
+            # Calculate Epsilon
+            if epoch <= 9:
+                eps = 0.001 * (epoch+1)
+
             # Generate the adversarial
-            X_adv, _ = FGSM_attack(X, y, model, loss_fn, eps=0.001)
+            X_adv, _ = FGSM_attack(X, y, model, loss_fn, eps=eps)
 
             out = model(X_adv)
             loss = loss_fn(out,y)
