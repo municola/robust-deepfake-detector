@@ -5,5 +5,8 @@
 *.pt
 polimi/*.pdf
 *.pyc
+**.pyc
 *.ipynb_ckeckpoints/
 .ipynb_ckeckpoints/
+.ipynb_checkpoints
+
