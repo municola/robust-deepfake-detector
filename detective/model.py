@@ -4,7 +4,7 @@ import torch.nn as nn
 class Detective(nn.Module):
     def __init__(self):
         super(Detective, self).__init__()
-        print("\nInitializ Detective")
+        print("\nInitialize Detective")
 
         self.conv1 = nn.Sequential(nn.Conv2d(3, 16, 3, 1, padding="same"),
                      nn.ReLU(),
