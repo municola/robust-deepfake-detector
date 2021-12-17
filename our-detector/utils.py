@@ -139,13 +139,13 @@ def load_data(data_path, batch_size):
     Recommended data folder structure/naming:
         - train
             - ffhq
-            - stylegan
+            - stylegan2
         - val
             - ffhq
-            - stylegan
+            - stylegan2
         - test
             - ffhq
-            - stylegan
+            - stylegan3
     """
 
     transform = transforms.Compose([
@@ -156,7 +156,7 @@ def load_data(data_path, batch_size):
     data = ImageFolder(root=data_path, transform=transform)
     dataloader = DataLoader(data, batch_size=batch_size, shuffle=True)
 
-    assert data.class_to_idx == {'ffhq': 0, 'stylegan': 1}
+    assert data.class_to_idx == {'ffhq': 0, 'stylegan2': 1} or data.class_to_idx == {'ffhq': 0, 'stylegan3': 1}
     assert len(np.unique(data.targets)) == 2, "More than two classes."
     print("\nDataset loaded")
     print("Dataset size:", len(dataloader.dataset))

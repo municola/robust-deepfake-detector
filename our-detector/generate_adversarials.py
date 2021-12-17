@@ -3,7 +3,7 @@ from attacks import *
 def main():
     # TODO: Have a separate File for Data Loaders
     batch_size = 10
-    user = "Nici"
+    user = "Mo"
     path_model='./our-detector/checkpoints/checkpoint.pt'
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

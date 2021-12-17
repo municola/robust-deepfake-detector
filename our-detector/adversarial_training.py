@@ -18,7 +18,7 @@ def main(random_seed=1234, device=None):
     set_seed(random_seed)
     print(f"Set random seed: {random_seed}")
 
-    user = "Nici"
+    user = "Mo"
     path_model='./our-detector/checkpoints/checkpoint.pt'
     path_adversarial_model = './our-detector/checkpoints/checkpoint_adversarial.pt'
 
@@ -69,7 +69,7 @@ def train(model, optimizer, dataloader, epoch, device):
             loss_fn = F.binary_cross_entropy
 
             # Generate the adversarial
-            X_adv, _ = PGD_attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.03, nb_iter=10)
+            X_adv, _ = PGD_attack(X, y, model, loss_fn, eps=0.1, eps_iter=0.02, nb_iter=10)
 
             out = model(X_adv)
             loss = loss_fn(out, y)
@@ -93,12 +93,13 @@ def validation(model, dataloader, epoch, device, binary_thresh=0.5):
             for batch, (X, y) in enumerate(tepoch):
                 X, y = X.to(device), y.to(device)
                 loss_fn = F.binary_cross_entropy
+                y = torch.unsqueeze(y.to(torch.float32), dim=1)
 
                 # Generate the adversarial
-                X_adv, _ = PGD_attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.03, nb_iter=10)
+                X_adv, _ = PGD_attack(X, y, model, loss_fn, eps=0.1, eps_iter=0.02, nb_iter=10)
 
                 out = model(X_adv)
-                loss = loss_fn(out, torch.unsqueeze(y.to(torch.float32), dim=1))
+                loss = loss_fn(out,y)
 
                 loss_sum += loss.item()
                 loss_val = loss_sum/(batch+1)
