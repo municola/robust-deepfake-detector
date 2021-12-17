@@ -4,31 +4,32 @@ from collections import OrderedDict
 import numpy as np
 import torch
 
-torch.manual_seed(21)
+torch.manual_seed(1234) #MOD from 21
 import random
 
-random.seed(21)
+random.seed(1234) #MOD from 21
 import torch.multiprocessing
 
 torch.multiprocessing.set_sharing_strategy('file_system')
 import albumentations as A
 import albumentations.pytorch as Ap
-from utils import architectures
-from utils.python_patch_extractor.PatchExtractor import PatchExtractor
+from polimi.utils import architectures #MOD
+from polimi.utils.python_patch_extractor.PatchExtractor import PatchExtractor #MOD
 from PIL import Image
 
 import argparse
 
 
 class Detector:
-    def __init__(self):
+    def __init__(self, device):
 
         # You need to download the weight.zip file from here https://www.dropbox.com/s/g1z2u8wl6srjh6v/weigths.zip?dl=0
         # and uncompress it into the main folder.
-        self.weights_path_list = [os.path.join('weights', f'method_{x}.pth') for x in 'ABCDE']
+        self.weights_path_list = [os.path.join('polimi/weights', f'method_{x}.pth') for x in 'ABCDE'] #MOD
 
         # GPU configuration if available
-        self.device = torch.device('cuda:0') if torch.cuda.is_available() else torch.device('cpu')
+        #MOD self.device = torch.device('cuda:0') if torch.cuda.is_available() else torch.device('cpu')
+        self.device = device
 
         self.nets = []
         for i, l in enumerate('ABCDE'):
@@ -49,6 +50,7 @@ class Detector:
             print('Model loaded!\n')
 
             self.nets += [net]
+        print("==> PolimiNet fully loaded!") #MOD
 
         net_normalizer = net.get_normalizer()  # pick normalizer from last network
         transform = [
@@ -64,6 +66,7 @@ class Detector:
         # Load image:
         img = np.asarray(Image.open(img_path))
 
+        """ MOD
         # Opt-out if image is non conforming
         if img.shape == ():
             print('{} None dimension'.format(img_path))
@@ -77,8 +80,9 @@ class Detector:
         if img.shape[2] > 3:
             print('Omitting alpha channel')
             img = img[:, :, :3]
+        """
 
-        print('Computing scores...')
+        #print('Computing scores...')
         img_net_scores = []
         for net_idx, net in enumerate(self.nets):
 
@@ -132,5 +136,5 @@ def main():
     return 0
 
 
-if __name__ == '__main__':
-    main()
+#MOD if __name__ == '__main__':
+#MOD    main()
