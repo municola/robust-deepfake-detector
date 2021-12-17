@@ -2,4 +2,8 @@
 *.pth
 **/data
 **/*.pt
+*.pt
 polimi/*.pdf
+*.pyc
+*.ipynb_ckeckpoints/
+.ipynb_ckeckpoints/

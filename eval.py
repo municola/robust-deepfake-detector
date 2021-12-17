@@ -1,22 +1,33 @@
 import numpy as np
 import torch
-from sklearn.metrics import roc_curve, roc_auc_score, RocCurveDisplay, accuracy_score
-
-from utils import load_model, load_data, get_path
-
+import yaml
+import argparse
+from sklearn.metrics import RocCurveDisplay
+from sklearn.metrics import roc_curve, roc_auc_score, accuracy_score
+from utils import load_model, load_data
+from tqdm import tqdm
 
 def main():
+    """Evaluate a given model with AUC and other metrics on the test data"""
 
-    # PARAMS
-    user = "Alex"
-    model_name = "DetectorNet" #"PolimiNet"
-    path_model = "checkpoints/checkpoint.pt"
-    batch_size = 10
+    # Config arguments
+    parser = argparse.ArgumentParser(description="")
+    parser.add_argument("--config_path", default="config.yaml")
+    args = parser.parse_args()
+    config = yaml.safe_load(open(args.config_path, "r"))
+    test_path = config['test_path']
+    batch_size = config['batch_size']
+    model_name = config['model_name']
 
-    model, model_name, device = load_model(model_name, path_model)
-    test_path = get_path(user, "test")
+    # Set device
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"\nUsing device: {device}")
+
+    # Load Model and data
+    model, model_name, _, _ = load_model(model_name, config, device)
     test_dataloader = load_data(test_path, batch_size)
 
+    # Evaluate
     evaluate(model, model_name, test_dataloader, device)
 
 
@@ -28,11 +39,12 @@ def evaluate(model, model_name, dataloader, device):
     print("\nCollecting predictions...")
 
     with torch.no_grad():
-        for X, y in dataloader:
-            X, y = X.to(device), y.to(device)
-            out = model(X)
-            y_pred = np.append(y_pred, out.cpu().numpy()) #proba class 1
-            y_true = np.append(y_true, y.cpu().numpy())
+        with tqdm(dataloader) as tepoch:
+            for batch, (X, y) in enumerate(tepoch):
+                X, y = X.to(device), y.to(device)
+                out = model(X)
+                y_pred = np.append(y_pred, out.cpu().numpy()) #proba class 1
+                y_true = np.append(y_true, y.cpu().numpy())
 
     assert y_true.shape == y_pred.shape, "y_true, y_pred of unequal length."
     print(f"Performance metrics for {model_name}:")

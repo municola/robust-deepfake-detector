@@ -1,13 +1,11 @@
 import os
 import random
 import numpy as np
-
 import torch
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
-
-from model import DetectorNet
+from detective.model import Detective
 
 
 def model_summary(model):
@@ -104,26 +102,25 @@ class EarlyStopping:
         self.val_loss_min = val_loss
 
 
-def load_model(model_name, path_model, device=None):
+def load_model(model_name, config, device):
     """"Load specified model from checkpoint onto device."""
 
-    if device == None:
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"\nUsing device: {device}")
-
-    if model_name == "DetectorNet":
-        model = DetectorNet().to(device)
-        model.load_state_dict(
-            torch.load(path_model, map_location=device)
-            )
-    elif model_name == "PolimiNet":
-        raise NotImplementedError("Missing PolimiNet")
+    if model_name == "Watson":
+        path_model = config['path_model_watson']
+        model = Detective().to(device)
+        model.load_state_dict(torch.load(path_model, map_location=device))
+    elif model_name == 'Sherlock':
+        path_model = config['path_model_sherlock']
+        model = Detective().to(device)
+        model.load_state_dict(torch.load(path_model, map_location=device))
+    elif model_name == "Polimi":
+        raise NotImplementedError("Missing Polimi")
     else:
-        raise ValueError("Need to specify 'DetectorNet' or 'PolimiNet'")
+        raise ValueError("Need to specify 'Sherlock', 'Watson' or 'Polimi'")
 
-    print(f"Loaded model {model_name} onto device {device}")
+    print(f"Loaded model: {model_name} onto device: {device}")
 
-    return model, model_name, device
+    return model, model_name, path_model, device
 
 
 def load_data(data_path, batch_size):
@@ -136,7 +133,7 @@ def load_data(data_path, batch_size):
     fake StyleGAN image folders as "stylegan" (f < s for alphabetical ordering).
     This naming is also strictly necessary to pass the assert statement.
 
-    Recommended data folder structure/naming:
+    Data folder structure/naming:
         - train
             - ffhq
             - stylegan2
@@ -164,54 +161,3 @@ def load_data(data_path, batch_size):
     print(f"Batch size: {batch_size}")
 
     return dataloader
-
-
-def get_path(user_name, data_name):
-    """Convenience function to get pre-specified data paths."""
-
-    path = ""
-
-    if user_name == "Mo":
-        if data_name == "train":
-            path = "/home/moritz/Documents/ETH/DL/Data/Train"
-        elif data_name == "val":
-            path = "/home/moritz/Documents/ETH/DL/Data/Validation"
-        elif data_name == "test":
-            path = "/home/moritz/Documents/ETH/DL/Data/Test"
-        else:
-            raise ValueError("Need one of 'train', 'val', 'test'")
-
-    elif user_name == "Nici":
-        if data_name == "train":
-            path = "/home/nicolas/git/robust-deepfake-detector/our-detector/data/train"
-        elif data_name == "val":
-            path = "/home/nicolas/git/robust-deepfake-detector/our-detector/data/val"
-        elif data_name == "test":
-            path = "/home/nicolas/git/robust-deepfake-detector/our-detector/data/test"
-        else:
-            raise ValueError("Need one of 'train', 'val', 'test'")
-
-    elif user_name == "Alex":
-        if data_name == "train":
-            path = "/Users/atimans/Desktop/Deep L/Project/data/trainSamp"
-        elif data_name == "val":
-            path = "/Users/atimans/Desktop/Deep L/Project/data/valSamp"
-        elif data_name == "test":
-            path = "/Users/atimans/Desktop/Deep L/Project/data/testSamp"
-        else:
-            raise ValueError("Need one of 'train', 'val', 'test'")
-
-    elif user_name == "David":
-        if data_name == "train":
-            path = None
-        elif data_name == "val":
-            path = None
-        elif data_name == "test":
-            path = None
-        else:
-            raise ValueError("Need one of 'train', 'val', 'test'")
-
-    else:
-        raise ValueError("Need one of 'Mo', 'Nici', 'Alex', 'David'")
-
-    return path

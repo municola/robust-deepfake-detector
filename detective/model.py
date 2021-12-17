@@ -1,10 +1,10 @@
 import torch
 import torch.nn as nn
 
-class DetectorNet(nn.Module):
+class Detective(nn.Module):
     def __init__(self):
-        super(DetectorNet, self).__init__()
-        print("\nInitialized DetectorNet")
+        super(Detective, self).__init__()
+        print("\nInitializ Detective")
 
         self.conv1 = nn.Sequential(nn.Conv2d(3, 16, 3, 1, padding="same"),
                      nn.ReLU(),
