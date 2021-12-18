@@ -77,8 +77,8 @@ def evaluate_polimi(model, model_name, test_path):
     """
 
     # create str paths for all test set images
-    test_img_ffhq = [os.path.join(test_path + "/ffhq", f"{img}.jpg") for img in range(50000, 50001)]
-    test_img_stylegan3 = [os.path.join(test_path + "/stylegan3", f"seed{str(img).zfill(4)}.png") for img in range(0, 1)]
+    test_img_ffhq = [os.path.join(test_path + "/ffhq", f"{img}.jpg") for img in range(50000, 70000)]
+    test_img_stylegan3 = [os.path.join(test_path + "/stylegan3", f"seed{str(img).zfill(4)}.png") for img in range(0, 20000)]
     test_img = test_img_ffhq + test_img_stylegan3
     size = len(test_img)
     print("\nSample path from ffhq:", test_img_ffhq[0])
