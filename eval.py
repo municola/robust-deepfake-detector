@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import torch
 import yaml
@@ -16,6 +17,7 @@ def main():
     args = parser.parse_args()
     config = yaml.safe_load(open(args.config_path, "r"))
     test_path = config['test_path']
+    eval_res_path = config['eval_res_path']
     batch_size = config['batch_size']
     model_name = config['model_name']
 
@@ -24,11 +26,18 @@ def main():
     print(f"\nUsing device: {device}")
 
     # Load Model and data
-    model, model_name, _, _ = load_model(model_name, config, device)
+    model, _, _, _ = load_model(model_name, config, device)
     test_dataloader = load_data(test_path, batch_size)
 
     # Evaluate
-    evaluate(model, model_name, test_dataloader, device)
+    if model_name == "Polimi":
+        y_true, y_pred = evaluate_polimi(model, model_name, test_path)
+    else:
+        y_true, y_pred = evaluate(model, model_name, test_dataloader, device)
+
+    # Save model results to file (save ROC plot manually)
+    np.savetxt(eval_res_path + "/y_true_" + model_name + ".csv", y_true, delimiter=",")
+    np.savetxt(eval_res_path + "/y_pred_" + model_name + ".csv", y_pred, delimiter=",")
 
 
 def evaluate(model, model_name, dataloader, device):
@@ -54,26 +63,70 @@ def evaluate(model, model_name, dataloader, device):
     return y_true, y_pred
 
 
-def roc_auc(y_true, y_pred, model_name, plot=True):
-    """ROC AUC and optional ROC curve plot."""
+def evaluate_polimi(model, model_name, test_path):
+    """
+    Obtain predictions for given dataset/loader and compute relevant metrics.
+    Modifications to specifically address PolimiNet external code.
+
+    PolimiNet output is an averaged logit score 
+    (sklearn.decision_function equivalent, see e.g.
+     https://www.kite.com/python/docs/sklearn.linear_model.SGDClassifier.decision_function)
+    A hard threshold is given at 0: out<0 is real (class 0), out>=0 is fake (class 1)
+    The value itself quantifies a sort of mean confidence in the prediction 
+    across the five nets of the ensemble (larger abs. value = more confident).
+    """
+
+    # create str paths for all test set images
+    test_img_ffhq = [os.path.join(test_path + "/ffhq", f"{img}.jpg") for img in range(50000, 50001)]
+    test_img_stylegan3 = [os.path.join(test_path + "/stylegan3", f"seed{str(img).zfill(4)}.png") for img in range(0, 1)]
+    test_img = test_img_ffhq + test_img_stylegan3
+    size = len(test_img)
+    print("\nSample path from ffhq:", test_img_ffhq[0])
+    print("Sample path from stylegan3:", test_img_stylegan3[0])
+    print("Total length of test set:", size)
+
+    y_true, y_pred = np.array([]), np.array([])
+    print("\nCollecting predictions, this will take a long time...")
+
+    for i, img in enumerate(test_img):
+        out = model.synth_real_detector(img)
+        y_pred = np.append(y_pred, out)
+
+        if i%100 == 0:
+            print(f"Predicted: {i+1}/{size}")
+
+    y_true = np.append(y_true, np.repeat(0, len(test_img_ffhq)))
+    y_true = np.append(y_true, np.repeat(1, len(test_img_stylegan3)))
+
+    assert y_true.shape == y_pred.shape, "y_true, y_pred of unequal length."
+    print(f"\nPerformance metrics for {model_name}:")
+    roc_auc(y_true, y_pred, model_name)
+    accuracy(y_true, y_pred, binary_thresh=0)
+
+    return y_true, y_pred
+
+
+def roc_auc(y_true, y_pred, model_name):
+    """ROC AUC and ROC curve plot."""
 
     auc = roc_auc_score(y_true, y_pred, labels=[0,1])
     print(f"AUC: {auc:.6f}")
-    if plot:
-        fpr, tpr, thr = roc_curve(y_true, y_pred)
-        roc_plot = RocCurveDisplay(fpr=fpr, tpr=tpr, roc_auc=auc,
-                                   estimator_name=model_name
-                                   )
-        roc_plot.plot()
+
+    fpr, tpr, thr = roc_curve(y_true, y_pred)
+    roc_plot = RocCurveDisplay(fpr=fpr, tpr=tpr, roc_auc=auc,
+                               estimator_name=model_name
+                               )
+    roc_plot.plot()
 
 
 def accuracy(y_true, y_pred, binary_thresh=0.5):
     """Accuracy for a given decision threshold."""
 
     print(f"Assign class 1 for probabilities >={binary_thresh}")
-    y_pred[y_pred >= binary_thresh] = 1
-    y_pred[y_pred < binary_thresh] = 0
-    acc = accuracy_score(y_true, y_pred)
+    hard_pred = np.empty(len(y_true))
+    hard_pred[np.flatnonzero(y_pred >= binary_thresh)] = 1
+    hard_pred[np.flatnonzero(y_pred < binary_thresh)] = 0
+    acc = accuracy_score(y_true, hard_pred)
     print(f"Accuracy: {acc:.4f}")
 
 
