@@ -15,11 +15,22 @@ Expected file structure:
 
 ## Installation
 
-### Attacks
+### Running attacks/generate_adversarials
 
 1. pip install advertorch
-2. Add the zero_gradients(x) function to advertorch/attacks/utils.py (Carful: Do this in your corresponding conda envrionment!!s)
-3. Replace line 14 in advertorch/attacks/fast_adaptive_boundary.py with: "from advertorch.attacks.utils import zero_gradients"
+2. Add the zero_gradients(x) function to advertorch/attacks/utils.py (Carful: Do this in your corresponding conda environment!)
+See https://discuss.pytorch.org/t/from-torch-autograd-gradcheck-import-zero-gradients/127462
+```bash
+def zero_gradients(x):
+    if isinstance(x, torch.Tensor):
+        if x.grad is not None:
+            x.grad.detach_()
+            x.grad.zero_()
+```
+3. Replace line 14 in advertorch/attacks/fast_adaptive_boundary.py with: 
+```bash
+from advertorch.attacks.utils import zero_gradients
+```
 
 ### Running Polimi for CPU (& "old" GPU)
 
@@ -43,7 +54,6 @@ but this was my workable setup that resembled closest the author's environment.
 ### Running Polimi for 3090
 
 1. Create and activate the conda environment
-
 ```bash
 conda create --name polimi
 conda activate polimi
@@ -54,7 +64,6 @@ pip install pytorchcv
 ```
 
 2. Download the model's weights from [this link](https://www.dropbox.com/s/g1z2u8wl6srjh6v/weigths.zip) and unzip the file under the main folder
-
 ```bash
 wget https://www.dropbox.com/s/g1z2u8wl6srjh6v/weigths.zip
 unzip weigths.zip
