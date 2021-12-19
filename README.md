@@ -17,9 +17,9 @@ Expected file structure:
 
 ### Running attacks/generate_adversarials
 
-1. ```bash pip install advertorch```
-2. Add the zero_gradients(x) function to advertorch/attacks/utils.py (Carful: Do this in your corresponding conda environment!). See [thread](https://discuss.pytorch.org/t/from-torch-autograd-gradcheck-import-zero-gradients/127462)
-```bash
+1. ```pip install advertorch```
+3. Add the zero_gradients(x) function to advertorch/attacks/utils.py (Carful: Do this in your corresponding conda environment!). See this [thread](https://discuss.pytorch.org/t/from-torch-autograd-gradcheck-import-zero-gradients/127462).
+```
 def zero_gradients(x):
     if isinstance(x, torch.Tensor):
         if x.grad is not None:
@@ -27,15 +27,13 @@ def zero_gradients(x):
             x.grad.zero_()
 ```
 3. Replace line 14 in advertorch/attacks/fast_adaptive_boundary.py with: 
-```bash
-from advertorch.attacks.utils import zero_gradients
-```
+```from advertorch.attacks.utils import zero_gradients```
 
 ### Running Polimi for CPU (& "old" GPU)
 
 1. Follow approach presented by authors in polimi/README.md
 2. If it didn't work to resolve environment (like for me: Alex), try
-```bash
+```
 conda create -n polimi python=3.8.12
 conda activate polimi
 conda install pytorch=1.6.0 torchvision=0.10.1 -c conda-forge
