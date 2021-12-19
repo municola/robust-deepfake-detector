@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
 from detective.model import Detective
-from polimi.gan_vs_real_detector import Detector as PolimiNet
+
 
 def model_summary(model):
     """Print out pretty model summary including parameter counts"""
@@ -117,6 +117,7 @@ def load_model(model_name, config, device):
         model = Detective().to(device)
         model.load_state_dict(torch.load(path_model, map_location=device))
     elif model_name == "Polimi":
+        from polimi.gan_vs_real_detector import Detector as PolimiNet
         path_model = None
         model = PolimiNet(device) # note: object is not a neural net
     else:
