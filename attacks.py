@@ -1,11 +1,9 @@
 import torch
 import torch.nn.functional as F
 from torchvision.utils import save_image
-from advertorch.attacks import LinfPGDAttack, PGDAttack, GradientSignAttack
 from tqdm import tqdm
-import os
+from advertorch.attacks import LinfPGDAttack, PGDAttack, GradientSignAttack
 
-from utils import *
 
 def PGD_attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.1, nb_iter=40):
     adversary = PGDAttack(
@@ -17,6 +15,7 @@ def PGD_attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.1, nb_iter=40):
 
     return X, y
 
+
 def LinfPGD_Attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.1, nb_iter=40):
     adversary = LinfPGDAttack(
         model, loss_fn=loss_fn, eps=eps,
@@ -27,6 +26,7 @@ def LinfPGD_Attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.1, nb_iter=40):
 
     return X, y
 
+
 def FGSM_attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.1):
     adversary = GradientSignAttack(model, loss_fn=loss_fn, eps=eps, targeted=False)
 
@@ -34,55 +34,51 @@ def FGSM_attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.1):
 
     return X, y
 
-def generateAdversarials(model, data_loader, output_dir, attack_type='PGD', device='cpu'):
-    """Generates Adverserials (for a given model and attack), then saves them to the output folder.
+
+def generate_adversarials(model, dataloader, output_dir, attack_type='PGD', device='cpu'):
+    """
+    Generates adversarials for a given model and attack, then saves them to the output folder.
 
     Args:
-        model (nn.Module): The Pytorch model on which we do the adverserial attack
-        data_loader (torch.utils.data.dataloader.DataLoader): Data loader for the input data
-        output_dir (str): Path to your output folder. Place to save the generated adverserials.
+        model (nn.Module): The Pytorch model on which we do the adversarial attack
+        dataloader (torch.utils.data.dataloader.DataLoader): Dataloader for the input data
+        output_dir (str): Paths to your output folder. Place to save the generated adversarials.
         attack_type (str): Which attack you want to run on the model
                         Default: 'PGD'
         device (torch.device): To run your model on the gpu ('cuda') or cpu ('cpu')
                         Default: 'cpu'
     """
 
-    # Set the model in Evaluation mode!
     model.eval()
-    imageCount = 0
+    count_ffhq, count_stylegan3 = 0, 20000 # guarantees ordered naming despite data shuffling
 
-    # Loop through the given data_loader and create the adverserial images
-    with tqdm(data_loader) as tepoch:
-        for batch_idx, (data, true_label) in enumerate(tepoch):
-            # Move to device and correct dimensions
-            data, true_label = data.to(device), true_label.to(device)
-            true_label = torch.unsqueeze(true_label.to(torch.float32), dim=1)
+    with tqdm(dataloader) as tepoch:
+        for batch, (X, y) in enumerate(tepoch):
+            X, y = X.to(device), y.to(device)
+            y = torch.unsqueeze(y.to(torch.float32), dim=1)
+            loss_fn = F.binary_cross_entropy
 
             # Make the attack
             if attack_type == 'LinfPGD':
-                adv_untargeted = LinfPGD_Attack(data, true_label, model, F.binary_cross_entropy)
+                adv_samp, _ = LinfPGD_Attack(X, y, model, loss_fn)
             elif attack_type == 'PGD':
-                adv_untargeted = PGD_attack(data, true_label, model, F.binary_cross_entropy)
+                adv_samp, _ = PGD_attack(X, y, model, loss_fn)
             elif attack_type == 'FGSM':
-                adv_untargeted = FGSM_attack(data, true_label, model, F.binary_cross_entropy)
+                adv_samp, _ = FGSM_attack(X, y, model, loss_fn)
             else:
-                raise NotImplementedError("This type of attack has not been implemented yet")
-
-            pathFake = output_dir + '/fake'
-            pathReal = output_dir + '/real'
-            os.makedirs(pathFake, exist_ok=True)
-            os.makedirs(pathReal, exist_ok=True)
+                raise NotImplementedError("This type of attack is not implemented")
 
             # Save images
-            for i in range(adv_untargeted[0].shape[0]):
-                if imageCount > 99999:
-                    raise ResourceWarning("You exeed the number of adverserials of 10000")
+            for img in range(dataloader.batch_size):
+                if (count_ffhq + count_stylegan3) > 40000:
+                    raise ResourceWarning("You exceed the total nr of adversarials of 40000")
                 
-                if adv_untargeted[1][i] == 0:
-                    save_image(adv_untargeted[0][i], f'{output_dir}/fake/{imageCount:05}.png')
-                    imageCount += 1
-                elif adv_untargeted[1][i] == 1:
-                    save_image(adv_untargeted[0][i], f'{output_dir}/real/{imageCount:05}.png')
-                    imageCount += 1
+                if y[img] == 0: # Adv sample for ffhq image
+                    save_image(adv_samp[img], f'{output_dir[0]}/{count_ffhq:05}.png')
+                    count_ffhq += 1
+                elif y[img] == 1: # Adv sample for stylegan3 image
+                    save_image(adv_samp[img], f'{output_dir[1]}/{count_stylegan3:05}.png')
+                    count_stylegan3 += 1
                 else:
-                    raise ValueError(f"Expected label value of 0 or 1. But received {adv_untargeted[1][i]}")
+                    raise ValueError(f"Expected label value of 0 or 1 but got {y[img]}")
+
