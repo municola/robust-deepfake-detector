@@ -1,47 +1,52 @@
-from attacks import *
-import torchvision
+import os
+import torch
 import yaml
 import argparse
+from utils import load_model, load_data
+from attacks import generate_adversarials
+
 
 def main():
-    # TODO: Have a separate File for Data Loaders
+    """Loads and calls on generate_adversarials for a given test set"""
 
     # Config arguments
     parser = argparse.ArgumentParser(description="")
     parser.add_argument("--config_path", default="config.yaml")
     args = parser.parse_args()
     config = yaml.safe_load(open(args.config_path, "r"))
+
     batch_size = config['batch_size']
-    test_path = config['test_path']
     model_name = config['model_name']
     adversarial_attack_type = config['adversarial_attack_type']
+    test_path = config['test_path']
+    test_adv_path = config['test_adv_path']
 
     # Set device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"\nUsing device: {device}")
 
-    # Model
+    # Model + data
     model, _, _, _ = load_model(model_name, config, device)
-    model_summary(model) # nr of params
+    test_dataloader = load_data(test_path, batch_size)
 
-    transform = transforms.Compose([
-        transforms.ToTensor()
-        # Maybe Normalize !!!!
-    ])
+    # Generate directory to store adv. samples that satisfies assert statement.
+    # Make sure that the directory doesn't exist in-place already, i.e.
+    # move or rename any existing test_adv directory for some trained model
+    adv_path_ffhq = test_adv_path + '/ffhq'
+    adv_path_stylegan3 = test_adv_path + '/stylegan3'
+    os.makedirs(adv_path_ffhq, exist_ok=False)
+    os.makedirs(adv_path_stylegan3, exist_ok=False)
+    print(f"\nCreated directories for storage:\n{adv_path_ffhq} \n{adv_path_stylegan3}")
 
-    # 1: Fake, 0: Real
-    test_data = torchvision.datasets.ImageFolder(root=test_path,transform = transform)
-    test_data_loader = DataLoader(test_data, batch_size=batch_size, shuffle=True)
-
-    # Generate the Adverserials
-    path = os.path.dirname('/data/adversarials/test')
-    os.makedirs(path, exist_ok=True)
-    generateAdversarials(
+    print(f"\nGenerating adversarial samples for {model_name} on test set...")
+    generate_adversarials(
         model = model, 
-        data_loader = test_data_loader, 
-        output_dir = path,
-        attack_type= adversarial_attack_type,
+        dataloader = test_dataloader,
+        output_dir = [adv_path_ffhq, adv_path_stylegan3],
+        attack_type = adversarial_attack_type,
         device = device
     )
+
 
 if __name__ == "__main__":
     main()
