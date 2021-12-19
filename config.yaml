@@ -9,7 +9,7 @@ test_path: "./data/test"
 test_adv_path: "./data/test_adv"
 eval_res_path: "./eval_results"
 
-test_adv_bool: True
+test_adv_bool: True #Evaluate on the adversarial test set?
 
 seed: 1234
 batch_size: 8
