@@ -8,18 +8,21 @@ from sklearn.metrics import roc_curve, roc_auc_score, accuracy_score
 from utils import load_model, load_data
 from tqdm import tqdm
 
+
 def main():
-    """Evaluate a given model with AUC and other metrics on the test data"""
+    """Evaluate a given model with metrics on normal/adversarial test data"""
 
     # Config arguments
     parser = argparse.ArgumentParser(description="")
     parser.add_argument("--config_path", default="config.yaml")
     args = parser.parse_args()
     config = yaml.safe_load(open(args.config_path, "r"))
-    test_path = config['test_path']
-    eval_res_path = config['eval_res_path']
+
     batch_size = config['batch_size']
     model_name = config['model_name']
+    eval_res_path = config['eval_res_path']
+    test_adv_bool = config['test_adv_bool'] # Important to correctly specify!
+    test_path = config['test_adv_path'] if test_adv_bool else config['test_path']
 
     # Set device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -28,10 +31,11 @@ def main():
     # Load Model and data
     model, _, _, _ = load_model(model_name, config, device)
     test_dataloader = load_data(test_path, batch_size)
+    print(f"Evaluating on adversarial test set: {test_adv_bool}")
 
     # Evaluate
     if model_name == "Polimi":
-        y_true, y_pred = evaluate_polimi(model, model_name, test_path)
+        y_true, y_pred = evaluate_polimi(model, model_name, test_path, test_adv_bool)
     else:
         y_true, y_pred = evaluate(model, model_name, test_dataloader, device)
 
@@ -56,14 +60,14 @@ def evaluate(model, model_name, dataloader, device):
                 y_true = np.append(y_true, y.cpu().numpy())
 
     assert y_true.shape == y_pred.shape, "y_true, y_pred of unequal length."
-    print(f"Performance metrics for {model_name}:")
+    print(f"\nPerformance metrics for {model_name}...")
     roc_auc(y_true, y_pred, model_name)
     accuracy(y_true, y_pred, binary_thresh=0.5)
 
     return y_true, y_pred
 
 
-def evaluate_polimi(model, model_name, test_path):
+def evaluate_polimi(model, model_name, test_path, test_adv_bool):
     """
     Obtain predictions for given dataset/loader and compute relevant metrics.
     Modifications to specifically address PolimiNet external code.
@@ -76,14 +80,19 @@ def evaluate_polimi(model, model_name, test_path):
     across the five nets of the ensemble (larger abs. value = more confident).
     """
 
-    # create str paths for all test set images
-    test_img_ffhq = [os.path.join(test_path + "/ffhq", f"{img}.jpg") for img in range(50000, 70000)]
-    test_img_stylegan3 = [os.path.join(test_path + "/stylegan3", f"seed{str(img).zfill(4)}.png") for img in range(0, 20000)]
+    # manually create str paths for all test set images (normal/adversarial)
+    if test_adv_bool:
+        test_img_ffhq = [os.path.join(test_path + "/ffhq", f"{str(img).zfill(5)}.png") for img in range(0, 20000)]
+        test_img_stylegan3 = [os.path.join(test_path + "/stylegan3", f"{img}.png") for img in range(20000, 40000)]
+    else:
+        test_img_ffhq = [os.path.join(test_path + "/ffhq", f"{img}.jpg") for img in range(50000, 70000)]
+        test_img_stylegan3 = [os.path.join(test_path + "/stylegan3", f"seed{str(img).zfill(4)}.png") for img in range(0, 20000)]
+
     test_img = test_img_ffhq + test_img_stylegan3
     size = len(test_img)
     print("\nSample path from ffhq:", test_img_ffhq[0])
     print("Sample path from stylegan3:", test_img_stylegan3[0])
-    print("Total length of test set:", size)
+    print("Total nr of test paths:", size)
 
     y_true, y_pred = np.array([]), np.array([])
     print("\nCollecting predictions, this will take a long time...")
