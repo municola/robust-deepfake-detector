@@ -17,9 +17,8 @@ Expected file structure:
 
 ### Running attacks/generate_adversarials
 
-1. pip install advertorch
-2. Add the zero_gradients(x) function to advertorch/attacks/utils.py (Carful: Do this in your corresponding conda environment!)
-See https://discuss.pytorch.org/t/from-torch-autograd-gradcheck-import-zero-gradients/127462
+1. ```bash pip install advertorch```
+2. Add the zero_gradients(x) function to advertorch/attacks/utils.py (Carful: Do this in your corresponding conda environment!). See [thread](https://discuss.pytorch.org/t/from-torch-autograd-gradcheck-import-zero-gradients/127462)
 ```bash
 def zero_gradients(x):
     if isinstance(x, torch.Tensor):
@@ -42,7 +41,7 @@ conda activate polimi
 conda install pytorch=1.6.0 torchvision=0.10.1 -c conda-forge
 conda install albumentations=0.5.2 efficientnet-pytorch=0.6.3 -c conda-forge
 pip install pytorchcv=0.0.58 
-conda install tqdm, scikit-learn and anything else needed to run eval.py
+#conda install tqdm, scikit-learn and anything else needed to run eval.py
 ```
 Probably also works with default install versions like below
 but this was my workable setup that resembled closest the author's environment.
