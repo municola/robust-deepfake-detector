@@ -20,6 +20,7 @@ def main():
     adversarial_attack_type = config['adversarial_attack_type']
     test_path = config['test_path']
     test_adv_path = config['test_adv_path']
+    epsilon = config['adversarial_eps']
 
     # Set device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -44,7 +45,8 @@ def main():
         dataloader = test_dataloader,
         output_dir = [adv_path_ffhq, adv_path_stylegan3],
         attack_type = adversarial_attack_type,
-        device = device
+        device = device,
+        epsilon = epsilon
     )
 
 

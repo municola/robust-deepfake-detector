@@ -25,6 +25,7 @@ def main():
     learning_rate = config['learning_rate']
     patience = config['early_stopping_patience']
     path_model = config['path_model_sherlock']
+    epsilon = config['adversarial_eps']
     
     # Model is always Watson (After training it becomes Sherlock)
     model_name = 'Watson'
@@ -50,8 +51,8 @@ def main():
 
     # Loop over the Epochs
     for epoch in range(epochs):
-        train(model, optimizer, train_dataloader, epoch, device)
-        loss_val = validation(model, val_dataloader, epoch, device)
+        train(model, optimizer, train_dataloader, epoch, device, epsilon)
+        loss_val = validation(model, val_dataloader, epoch, device, epsilon)
 
         # check early stopping
         if epoch >= 9:
@@ -64,11 +65,10 @@ def main():
     model.load_state_dict(torch.load(path_model))
         
     
-def train(model, optimizer, dataloader, epoch, device):
+def train(model, optimizer, dataloader, epoch, device, epsilon):
     """"Training loop over batches for one epoch"""
 
     loss_sum = 0
-    eps = None
     with tqdm(dataloader) as tepoch:
         for batch, (X, y) in enumerate(tepoch):
             X, y = X.to(device), y.to(device)
@@ -77,9 +77,9 @@ def train(model, optimizer, dataloader, epoch, device):
 
             # Calculate Epsilon
             if epoch <= 9:
-                eps = 0.001 * (epoch+1)
+                eps = epsilon/10 * (epoch+1)
             else:
-                eps = 0.01
+                eps = epsilon
 
             # Generate the adversarial
             model.eval()
@@ -98,12 +98,11 @@ def train(model, optimizer, dataloader, epoch, device):
             tepoch.set_postfix(loss = loss_sum/(batch+1))
 
 
-def validation(model, dataloader, epoch, device, binary_thresh=0.5):
+def validation(model, dataloader, epoch, device, epsilon, binary_thresh=0.5):
     """"Validation loop over batches for one epoch"""
 
     model.eval()
     loss_sum, correct = 0, 0
-    eps = None
 
     with tqdm(dataloader) as tepoch:
         for batch, (X, y) in enumerate(tepoch):
@@ -113,9 +112,9 @@ def validation(model, dataloader, epoch, device, binary_thresh=0.5):
 
             # Calculate Epsilon
             if epoch <= 9:
-                eps = 0.001 * (epoch+1)
+                eps = epsilon/10 * (epoch+1)
             else:
-                eps = 0.01
+                eps = epsilon
 
             # Generate the adversarial
             X_adv, _ = FGSM_attack(X, y, model, loss_fn, eps=eps)

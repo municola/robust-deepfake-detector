@@ -19,3 +19,4 @@ epochs_adversarial_training: 20
 early_stopping_patience: 3
 
 adversarial_attack_type: "FGSM" # LinfPGD, PGD, FGSM
+adversarial_eps: 0.01
