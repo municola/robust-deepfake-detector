@@ -45,8 +45,8 @@ Probably also works with default install versions like below
 but this was my workable setup that resembled closest the author's environment.
 
 3. Download weights.zip (also in Polybox), unzip and place in polimi folder
-4. Set model_name in config.yaml accordingly
-5. Run eval.py and obtain results in eval_results folder
+4. Set model_name and other params in config.yaml accordingly
+5. Run eval.py and obtain predictions in eval_results folder, manually save ROC plot
 
 ### Running Polimi for 3090
 
