@@ -6,13 +6,13 @@
 |----------------|----------|--------|
 | Watson         | -------- | ------ |
 | *normal*       |   High   |  High  |
-| *adv*          |   Low    |  Low   |
+| *adv*          |   Low    |  Low   | => adversarial sample generation
 | Polimi         | -------- | ------ |
 | *normal*       |   High   |  High  |
-| *adv*          |   Low    |  Low   |
+| *adv*          |   Low    |  Low   | => adversarial sample transferability
 | Sherlock       | -------- | ------ |
 | *normal*       |   High   |  High  |
-| *adv*          |   High   |  High  |
+| *adv*          |   High   |  High  | => adversarial training
 
 ## Watson/Sherlock v1
 
