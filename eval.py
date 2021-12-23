@@ -56,7 +56,7 @@ def evaluate(model, model_name, dataloader, device):
             for batch, (X, y) in enumerate(tepoch):
                 X, y = X.to(device), y.to(device)
                 out = model(X)
-                y_pred = np.append(y_pred, out.cpu().numpy()) #proba class 1
+                y_pred = np.append(y_pred, out.cpu().numpy()) # proba class 1
                 y_true = np.append(y_true, y.cpu().numpy())
 
     assert y_true.shape == y_pred.shape, "y_true, y_pred of unequal length."
@@ -97,12 +97,9 @@ def evaluate_polimi(model, model_name, test_path, test_adv_bool):
     y_true, y_pred = np.array([]), np.array([])
     print("\nCollecting predictions, this will take a long time...")
 
-    for i, img in enumerate(test_img):
+    for _, img in enumerate(tqdm(test_img)):
         out = model.synth_real_detector(img)
         y_pred = np.append(y_pred, out)
-
-        if i%100 == 0:
-            print(f"Predicted: {i+1}/{size}")
 
     y_true = np.append(y_true, np.repeat(0, len(test_img_ffhq)))
     y_true = np.append(y_true, np.repeat(1, len(test_img_stylegan3)))
@@ -122,9 +119,12 @@ def roc_auc(y_true, y_pred, model_name):
     print(f"AUC: {auc:.6f}")
 
     fpr, tpr, thr = roc_curve(y_true, y_pred)
-    roc_plot = RocCurveDisplay(fpr=fpr, tpr=tpr, roc_auc=auc,
-                               estimator_name=model_name
-                               )
+    roc_plot = RocCurveDisplay(
+        fpr=fpr,
+        tpr=tpr, 
+        roc_auc=auc,
+        estimator_name=model_name
+    )
     roc_plot.plot()
 
 

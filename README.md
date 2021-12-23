@@ -4,6 +4,7 @@ Expected file structure:
 
 - data
   - test
+  - test_adv
   - train
   - val
 - detective

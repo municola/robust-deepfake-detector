@@ -9,4 +9,5 @@ polimi/*.pdf
 *.ipynb_ckeckpoints/
 .ipynb_ckeckpoints/
 .ipynb_checkpoints
+.vscode/
 

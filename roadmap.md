@@ -61,7 +61,23 @@
 
 - Performance/Accuracy might also depend on image resolution. We expect to be better with higher resolution. Here we just do proof of concept.
 - Performance of discriminator might depend on previously trained-on data sets, i.e. PoliMi discriminator will perform better than expected on **adversarial** test set (more robust than expected)
-	
+
+
+
+# End game plan
+1. Mo: PGD adversarial training + adversarial generation
+2.1. Alex: Download adversarials und evaluate Watson (adv), Sherlock (adv, nor) 
+2.2. Nici: Download adversarials and evaluate Polimi (adv)
+3. Kamm: Start report
+4. Alex/Nici: Change Watson architecture + Evaal on normal
+   - Adversarial training for Watson->Sherlock
+   (- Generate adversarial evaluate polimi on this)
+
+Ideas
+- Change architecture of Watson
+- Universal samples for real time perturbations (recommendation of proposal grader)
+- Evaluate other detectors from competitors than polimi
+  
 
 
 
