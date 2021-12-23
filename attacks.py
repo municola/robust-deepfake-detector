@@ -60,9 +60,9 @@ def generate_adversarials(model, dataloader, output_dir, attack_type='PGD', devi
 
             # Make the attack
             if attack_type == 'LinfPGD':
-                adv_samp, _ = LinfPGD_Attack(X, y, model, loss_fn, eps_iter=epsilon/10)
+                adv_samp, _ = LinfPGD_Attack(X, y, model, loss_fn, eps=epsilon, eps_iter=epsilon/10, nb_iter=20)
             elif attack_type == 'PGD':
-                adv_samp, _ = PGD_attack(X, y, model, loss_fn, eps=epsilon, eps_iter=epsilon/10)
+                adv_samp, _ = PGD_attack(X, y, model, loss_fn, eps=epsilon, eps_iter=epsilon/10, nb_iter=20)
             elif attack_type == 'FGSM':
                 adv_samp, _ = FGSM_attack(X, y, model, loss_fn, eps=epsilon)
             else:
@@ -70,7 +70,7 @@ def generate_adversarials(model, dataloader, output_dir, attack_type='PGD', devi
 
             # Save images
             for img in range(dataloader.batch_size):
-                if count_ffhq > 40000 or  count_stylegan3 > 40000:
+                if count_ffhq > 20000 or count_stylegan3 > 40000:
                     raise ResourceWarning("You exceed the total nr of adversarials of 40000")
                 
                 if y[img] == 0: # Adv sample for ffhq image

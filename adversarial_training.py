@@ -55,7 +55,7 @@ def main():
         loss_val = validation(model, val_dataloader, epoch, device, epsilon)
 
         # check early stopping
-        if epoch >= 9:
+        if epoch >= 19:
             early_stopping(loss_val, model)
             if early_stopping.early_stop:
                 print(f"Early stopping at epoch {epoch}")
@@ -76,14 +76,14 @@ def train(model, optimizer, dataloader, epoch, device, epsilon):
             loss_fn = F.binary_cross_entropy
 
             # Calculate Epsilon
-            if epoch <= 9:
-                eps = epsilon/10 * (epoch+1)
+            if epoch <= 19:
+                eps = epsilon/20 * (epoch+1)
             else:
                 eps = epsilon
 
             # Generate the adversarial
             model.eval()
-            X_adv, _ = FGSM_attack(X, y, model, loss_fn, eps=eps)
+            X_adv, _ = LinfPGD_Attack(X, y, model, loss_fn, eps=eps, eps_iter=eps/10, nb_iter=20)
             model.train()
 
             out = model(X_adv)
@@ -111,13 +111,13 @@ def validation(model, dataloader, epoch, device, epsilon, binary_thresh=0.5):
             y = torch.unsqueeze(y.to(torch.float32), dim=1)
 
             # Calculate Epsilon
-            if epoch <= 9:
-                eps = epsilon/10 * (epoch+1)
+            if epoch <= 19:
+                eps = epsilon/20 * (epoch+1)
             else:
                 eps = epsilon
 
             # Generate the adversarial
-            X_adv, _ = FGSM_attack(X, y, model, loss_fn, eps=eps)
+            X_adv, _ = LinfPGD_Attack(X, y, model, loss_fn, eps=eps, eps_iter=eps/10, nb_iter=20)
 
             out = model(X_adv)
             loss = loss_fn(out,y)
