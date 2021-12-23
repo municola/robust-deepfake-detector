@@ -1,4 +1,4 @@
-model_name: "Watson" # Lestrade, Watson, Sherlock, Polimi
+model_name: "Polimi" # Lestrade, Watson, Sherlock, Polimi
 
 path_model_watson: "./detective/checkpoints/checkpoint_watson.pt"
 path_model_sherlock: "./detective/checkpoints/checkpoint_sherlock.pt"
@@ -9,7 +9,7 @@ test_path: "./data/test"
 test_adv_path: "./data/test_adv"
 eval_res_path: "./eval_results"
 
-test_adv_bool: True #Evaluate on the adversarial test set?
+test_adv_bool: False # Evaluate on the adversarial test set?
 
 seed: 1234
 batch_size: 8
