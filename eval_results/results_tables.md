@@ -19,7 +19,7 @@
 (3) adversarial training
 
 ## Watson/Sherlock v1
-Initial model architecture (v1), adversarial attack FGSM
+Initial model architecture (v1), adversarial attack FGSM with eps=0.05
 
 | Model/test set | AUC      | Acc    |
 |----------------|----------|--------|
@@ -34,7 +34,7 @@ Initial model architecture (v1), adversarial attack FGSM
 | *adv*          | 0.792630 | 0.5213 |
 
 ## Watson/Sherlock v2
-Initial model architecture (like v1), adversarial attack LinfPGD
+Initial model architecture (like v1), adversarial attack LinfPGD with eps=0.05
 
 | Model/test set | AUC      | Acc    |
 |----------------|----------|--------|
@@ -49,7 +49,21 @@ Initial model architecture (like v1), adversarial attack LinfPGD
 | *adv*          | 0.631619 | 0.5025 |
 
 ## Watson/Sherlock v3
-Different model architecture, adversarial attack FGSM
+Initial model architecture (like v1), adversarial attack LinfPGD with eps=0.01
+
+| Model/test set | AUC      | Acc    |
+|----------------|----------|--------|
+| Watson         | -------- | ------ |
+| *normal*       | 0.904720 | 0.5334 |
+| *adv*          | 0.085589 | 0.1925 |
+| Polimi         | -------- | ------ |
+| *normal*       | 0.991053 | 0.7011 |
+| *adv*          |          |        |
+| Sherlock       | -------- | ------ |
+| *normal*       | 0.857947 | 0.5131 |
+| *adv*          | 0.841901 | 0.5115 |
+
+## Watson/Sherlock v4
 
 | Model/test set | AUC      | Acc    |
 |----------------|----------|--------|
