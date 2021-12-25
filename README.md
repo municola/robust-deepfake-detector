@@ -1,6 +1,10 @@
 # Fake image detectors are worse than you think
 
-Expected file structure:
+## Links
+Data: [Polybox](https://polybox.ethz.ch/index.php/s/V3WwMQ3wnrW6rGN)
+Paper: [Overleaf](https://www.overleaf.com/project/61c44cf78f5dca7afa502280)
+
+## Expected file structure:
 
 - data
   - test
