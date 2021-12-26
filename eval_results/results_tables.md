@@ -58,7 +58,7 @@ Initial model architecture (like v1), adversarial attack LinfPGD with eps=0.01
 | *adv*          | 0.085589 | 0.1925 |
 | Polimi         | -------- | ------ |
 | *normal*       | 0.991053 | 0.7011 |
-| *adv*          |          |        |
+| *adv*          | 0.931072 | 0.7169 |
 | Sherlock       | -------- | ------ |
 | *normal*       | 0.857947 | 0.5131 |
 | *adv*          | 0.841901 | 0.5115 |
