@@ -1,4 +1,4 @@
-model_name: "Lestrade2" # Lestrade, Watson, Sherlock, Lestrade2, Watson2, Sherlock2, Polimi
+model_name: "Watson2" # Lestrade, Watson, Sherlock, Lestrade2, Watson2, Sherlock2, Polimi
 
 version: 2 # 1, 2 (1: Simple Detector, 2: With pretrained Network)
 
