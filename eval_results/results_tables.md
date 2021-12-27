@@ -19,7 +19,7 @@
 (3) adversarial training
 
 ## Watson/Sherlock v1
-Initial model architecture (v1), adversarial attack FGSM with eps=0.05
+Initial model architecture (v1), adversarial attack FGSM with eps=0.01
 
 | Model/test set | AUC      | Acc    |
 |----------------|----------|--------|
