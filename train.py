@@ -108,7 +108,7 @@ def validation(model, dataloader, epoch, device, binary_thresh=0.5):
 
                 out[out >= binary_thresh] = 1
                 out[out < binary_thresh] = 0
-                correct += (out == y).sum().item()
+                correct += (out == torch.unsqueeze(y.to(torch.float32), dim=1)).sum().item()
 
             print(f"Val loss in epoch {epoch}: {loss_val:.6f}")
             acc = correct/len(dataloader.dataset)
