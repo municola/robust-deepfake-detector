@@ -52,12 +52,16 @@ def main():
     model, _, _, _ = load_model(model_name, config, device)
     model_summary2(model)
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    #scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, min_lr=1e-5, eps=1e-5,
+    #                                             patience=patience-1)
     early_stopping = EarlyStopping(patience=patience, verbose=True, path=path_model)
+    #print(f"Scheduled LR reduction after {patience-1} epochs without improvement")
 
     # Main loop
     for epoch in range(epochs):
         train(model, optimizer, train_dataloader, epoch, device)
         loss_val = validation(model, val_dataloader, epoch, device)
+        #scheduler.step(loss_val)
 
         # check early stopping
         early_stopping(loss_val, model)
