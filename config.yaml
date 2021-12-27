@@ -1,7 +1,12 @@
-model_name: "Watson" # Lestrade, Watson, Sherlock, Polimi
+model_name: "Lestrade2" # Lestrade, Watson, Sherlock, Lestrade2, Watson2, Sherlock2, Polimi
+
+version: 2 # 1, 2 (1: Simple Detector, 2: With pretrained Network)
 
 path_model_watson: "./detective/checkpoints/checkpoint_watson.pt"
 path_model_sherlock: "./detective/checkpoints/checkpoint_sherlock_v3.pt"
+
+path_model_watson2: "./detective/checkpoints/checkpoint_watson2.pt"
+path_model_sherlock2: "./detective/checkpoints/checkpoint_sherlock2.pt"
 
 train_path: "./data/train"
 val_path: "./data/val"
@@ -9,7 +14,7 @@ test_path: "./data/test"
 test_adv_path: "./data/test_adv_v3"
 eval_res_path: "./eval_results"
 
-test_adv_bool: False # Evaluate on the adversarial test set?
+test_adv_bool: True # Evaluate on the adversarial test set (True, False)
 
 seed: 1234
 batch_size: 32

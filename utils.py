@@ -6,6 +6,8 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
 from detective.model import Detective
+from detective.model2 import Detective2
+from torchsummary import summary
 
 
 def model_summary(model):
@@ -15,7 +17,7 @@ def model_summary(model):
     print("\nLayer_name" + "\t" * 7 + "Number of Parameters")
     print("=" * 100)
 
-    model_parameters = [layer for layer in model.parameters() if layer.requires_grad]
+    model_parameters = [layer for layer in model.parameters()]
     layer_name = [child for child in model.children()]
     j, total_params = 0, 0
     print("\t" * 10)
@@ -36,6 +38,17 @@ def model_summary(model):
         total_params += param
     print("=" * 100)
     print(f"Total Params: {total_params}\n")
+
+
+def model_summary2(model):
+    """Print out pretty model summary including parameter counts"""
+
+    print("Model:")
+    print(model)
+    print()
+
+    print("Model summary:")
+    summary(model, (3, 224, 224))
 
 
 def set_seed(seed):
@@ -120,6 +133,17 @@ def load_model(model_name, config, device):
         from polimi.gan_vs_real_detector import Detector as PolimiNet
         path_model = None
         model = PolimiNet(device) # note: object is not a neural net
+    elif model_name == "Lestrade2":
+        path_model = None
+        model = Detective2(finetune=False).to(device)
+    elif model_name == "Watson2":
+        path_model = config['path_model_watson2']
+        model = Detective2(finetune=True).to(device)
+        model.load_state_dict(torch.load(path_model, map_location=device))
+    elif model_name == 'Sherlock2':
+        path_model = config['path_model_sherlock2']
+        model = Detective2(finetune=False).to(device)
+        model.load_state_dict(torch.load(path_model, map_location=device))
     else:
         raise ValueError("Need to specify 'Lestrade', 'Sherlock', 'Watson' or 'Polimi'")
 
@@ -128,7 +152,7 @@ def load_model(model_name, config, device):
     return model, model_name, path_model, device
 
 
-def load_data(data_path, batch_size):
+def load_data(data_path, batch_size, model_name):
     """"
     Load data from specified path and return dataloader with batch size.
 
@@ -149,11 +173,20 @@ def load_data(data_path, batch_size):
             - ffhq
             - stylegan3
     """
-
-    transform = transforms.Compose([
-         transforms.ToTensor()
-         # transforms.Normalize((0.1307,), (0.3081,))
-     ])
+    print('modelname:', model_name)
+    if model_name in ['Lestrade2', 'Watson2', 'Sherlock2']:
+        print("Use transformation for VGG pretrained network model")
+        transform = transforms.Compose([
+            transforms.RandomResizedCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        ])
+    else:
+        print("Use no transformation")
+        transform = transforms.Compose([
+            transforms.ToTensor()
+            # transforms.Normalize((0.1307,), (0.3081,))
+        ])
 
     data = ImageFolder(root=data_path, transform=transform)
     dataloader = DataLoader(data, batch_size=batch_size, shuffle=True)

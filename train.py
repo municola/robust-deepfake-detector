@@ -5,7 +5,7 @@ from tqdm import tqdm
 import yaml
 import argparse
 from utils import EarlyStopping
-from utils import model_summary, set_seed, load_data, load_model
+from utils import model_summary, model_summary2, set_seed, load_data, load_model
 
 
 def main():
@@ -23,10 +23,17 @@ def main():
     epochs = config['epochs_training']
     learning_rate = config['learning_rate']
     patience = config['early_stopping_patience']
-    path_model = config['path_model_watson']
+    version = config['version']
 
     # Model is always Lestrade (After training it becomes Watson)
-    model_name = 'Lestrade'
+    if version == 1:
+        model_name = 'Lestrade'
+        path_model = config['path_model_watson']
+    elif version == 2:
+        model_name = 'Lestrade2'
+        path_model = config['path_model_watson2']
+    else:
+        raise ValueError("No such version exist currently")
 
     # Set seed
     set_seed(seed)
@@ -37,13 +44,13 @@ def main():
 
     # Load data
     print("\nTrain:")
-    train_dataloader = load_data(train_path, batch_size)
+    train_dataloader = load_data(train_path, batch_size, model_name)
     print("\nVal:")
-    val_dataloader = load_data(val_path, batch_size)
+    val_dataloader = load_data(val_path, batch_size, model_name)
 
     # Model
     model, _, _, _ = load_model(model_name, config, device)
-    model_summary(model)
+    model_summary2(model)
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     early_stopping = EarlyStopping(patience=patience, verbose=True, path=path_model)
 
