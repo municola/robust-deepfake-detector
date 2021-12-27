@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import yaml
 import argparse
 from tqdm import tqdm
-from utils import load_model, model_summary, set_seed, load_data
+from utils import load_model, model_summary, model_summary2, set_seed, load_data
 from utils import EarlyStopping
 from attacks import *
 
@@ -26,9 +26,15 @@ def main():
     patience = config['early_stopping_patience']
     path_model = config['path_model_sherlock']
     epsilon = config['adversarial_eps']
+    version = config['version']
     
     # Model is always Watson (After training it becomes Sherlock)
-    model_name = 'Watson'
+    if version == 1:
+        model_name = 'Watson'
+    elif version == 2:
+        model_name = 'Watson2'
+    else:
+        raise ValueError("This version is not yet supported.")
 
     # Set seed
     set_seed(seed)
@@ -39,13 +45,13 @@ def main():
 
     # Load data
     print("\nTrain:")
-    train_dataloader = load_data(train_path, batch_size)
+    train_dataloader = load_data(train_path, batch_size, model_name)
     print("\nVal:")
-    val_dataloader = load_data(val_path, batch_size)
+    val_dataloader = load_data(val_path, batch_size, model_name)
 
     # Model
-    model, _, _, _ = load_model(model_name, config, device)
-    model_summary(model) # nr of params
+    model, _, _, _ = load_model(model_name, config, device, finetune=True)
+    model_summary2(model) # nr of params
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     early_stopping = EarlyStopping(patience=patience, verbose=True, path=path_model)
 
@@ -129,7 +135,7 @@ def validation(model, dataloader, epoch, device, epsilon, binary_thresh=0.5):
 
             out[out >= binary_thresh] = 1
             out[out < binary_thresh] = 0
-            correct += (out == y).sum().item()
+            correct += (out == torch.unsqueeze(y.to(torch.float32), dim=1)).sum().item()
 
         print(f"Val loss in epoch {epoch}: {loss_val:.6f}")
         acc = correct/len(dataloader.dataset)

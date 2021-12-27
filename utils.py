@@ -115,7 +115,7 @@ class EarlyStopping:
         self.val_loss_min = val_loss
 
 
-def load_model(model_name, config, device):
+def load_model(model_name, config, device, finetune=False):
     """"Load specified model from checkpoint onto device."""
 
     if model_name == "Lestrade":
@@ -135,14 +135,14 @@ def load_model(model_name, config, device):
         model = PolimiNet(device) # note: object is not a neural net
     elif model_name == "Lestrade2":
         path_model = None
-        model = Detective2(finetune=False).to(device)
+        model = Detective2(finetune=finetune).to(device)
     elif model_name == "Watson2":
         path_model = config['path_model_watson2']
-        model = Detective2(finetune=True).to(device)
+        model = Detective2(finetune=finetune).to(device)
         model.load_state_dict(torch.load(path_model, map_location=device))
     elif model_name == 'Sherlock2':
         path_model = config['path_model_sherlock2']
-        model = Detective2(finetune=False).to(device)
+        model = Detective2(finetune=finetune).to(device)
         model.load_state_dict(torch.load(path_model, map_location=device))
     else:
         raise ValueError("Need to specify 'Lestrade', 'Sherlock', 'Watson' or 'Polimi'")
