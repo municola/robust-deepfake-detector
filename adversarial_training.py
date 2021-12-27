@@ -7,7 +7,7 @@ from tqdm import tqdm
 from utils import load_model, model_summary, model_summary2, set_seed, load_data
 from utils import EarlyStopping
 from attacks import *
-
+import wandb
 
 def main():
     """"Main training loop for discriminator model"""
@@ -27,6 +27,7 @@ def main():
     path_model = config['path_model_sherlock']
     epsilon = config['adversarial_eps']
     version = config['version']
+    wandb.init(project="robust-deepfake-detector", entity="deep-learning-eth-2021", config=config)
     
     # Model is always Watson (After training it becomes Sherlock)
     if version == 1:
@@ -52,6 +53,7 @@ def main():
     # Model
     model, _, _, _ = load_model(model_name, config, device, finetune=True)
     model_summary2(model) # nr of params
+    wandb.watch(model)
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     early_stopping = EarlyStopping(patience=patience, verbose=True, path=path_model)
 
@@ -61,11 +63,10 @@ def main():
         loss_val = validation(model, val_dataloader, epoch, device, epsilon)
 
         # check early stopping
-        if epoch >= 19:
-            early_stopping(loss_val, model)
-            if early_stopping.early_stop:
-                print(f"Early stopping at epoch {epoch}")
-                break
+        early_stopping(loss_val, model)
+        if early_stopping.early_stop:
+            print(f"Early stopping at epoch {epoch}")
+            break
             
     # load the last checkpoint with the best model
     model.load_state_dict(torch.load(path_model))
@@ -95,6 +96,7 @@ def train(model, optimizer, dataloader, epoch, device, epsilon):
             out = model(X_adv)
             loss = loss_fn(out, y)
 
+
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -102,6 +104,7 @@ def train(model, optimizer, dataloader, epoch, device, epsilon):
             loss_sum += loss.item()
             tepoch.set_description(f"Epoch {epoch}")
             tepoch.set_postfix(loss = loss_sum/(batch+1))
+            wandb.log({"loss-train": loss_sum/(batch+1)})
 
 
 def validation(model, dataloader, epoch, device, epsilon, binary_thresh=0.5):
@@ -135,10 +138,12 @@ def validation(model, dataloader, epoch, device, epsilon, binary_thresh=0.5):
 
             out[out >= binary_thresh] = 1
             out[out < binary_thresh] = 0
-            correct += (out == torch.unsqueeze(y.to(torch.float32), dim=1)).sum().item()
+            correct += (out == torch.squeeze(y.to(torch.float32), dim=0)).sum().item()
+            wandb.log({"loss-val": loss_val})
 
         print(f"Val loss in epoch {epoch}: {loss_val:.6f}")
         acc = correct/len(dataloader.dataset)
+        wandb.log({"accuracy-val": acc})
         print(f"Val acc in epoch {epoch}: {acc:.6f}")
 
     return loss_val
