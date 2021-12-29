@@ -152,7 +152,7 @@ def load_model(model_name, config, device, finetune=False):
     return model, model_name, path_model, device
 
 
-def load_data(data_path, batch_size, model_name):
+def load_data(data_path, batch_size, model_name, seed, num_workers):
     """"
     Load data from specified path and return dataloader with batch size.
 
@@ -174,12 +174,27 @@ def load_data(data_path, batch_size, model_name):
             - stylegan3
     """
     print('modelname:', model_name)
+
+    # Set seed
+    def seed_worker(worker_id):
+        worker_seed = torch.initial_seed() % 2**32
+        np.random.seed(worker_seed)
+        random.seed(worker_seed)
+    g = torch.Generator()
+    g.manual_seed(seed)
+
     if model_name in ['Lestrade2', 'Watson2', 'Sherlock2']:
         print("Use transformation for VGG pretrained network model")
-        transform = transforms.Compose([
-            transforms.RandomResizedCrop(224),
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        if model_name == 'Watson2':
+            transform = transforms.Compose([
+                transforms.RandomResizedCrop(224),
+                transforms.ToTensor(),
+            ])
+        else:
+            transform = transforms.Compose([
+                transforms.RandomResizedCrop(224),
+                transforms.ToTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
     else:
         print("Use no transformation")
@@ -189,7 +204,14 @@ def load_data(data_path, batch_size, model_name):
         ])
 
     data = ImageFolder(root=data_path, transform=transform)
-    dataloader = DataLoader(data, batch_size=batch_size, shuffle=True)
+    dataloader = DataLoader(
+        data, 
+        batch_size=batch_size, 
+        shuffle=True,
+        num_workers=num_workers,
+        worker_init_fn=seed_worker,
+        generator=g
+    )
 
     assert data.class_to_idx == {'ffhq': 0, 'stylegan2': 1} or data.class_to_idx == {'ffhq': 0, 'stylegan3': 1}
     assert len(np.unique(data.targets)) == 2, "More than two classes."

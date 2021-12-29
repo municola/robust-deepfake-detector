@@ -2,6 +2,24 @@ import torch
 import torch.nn as nn
 from torchvision import models
 
+#'''
+def Detective2(finetune=False):
+    model_ft = models.resnet18(pretrained=True)
+
+    if finetune == False:
+        # Set gradients to False
+        for param in model_ft.parameters():
+            param.requires_grad = False
+
+    num_ftrs = model_ft.fc.in_features
+    model_ft.fc = nn.Sequential(nn.Linear(num_ftrs, 1), nn.Sigmoid())
+
+    return model_ft
+#'''
+
+
+
+'''
 class Detective2(nn.Module):
     def __init__(self, pretrained=True, finetune=False):
         super().__init__()
@@ -31,7 +49,7 @@ class Detective2(nn.Module):
         output = torch.sigmoid(output)
                 
         return output
-
+#'''
 
 '''
 def Detective2(finetune = False):
