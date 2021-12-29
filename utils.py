@@ -161,7 +161,7 @@ def load_model(model_name, config, device, finetune=False):
     return model, model_name, path_model, device
 
 
-def load_data(data_path, batch_size, model_name, seed, num_workers):
+def load_data(data_path, batch_size, model_name, seed, num_workers, adverserial_training=False):
     """"
     Load data from specified path and return dataloader with batch size.
 
@@ -193,7 +193,7 @@ def load_data(data_path, batch_size, model_name, seed, num_workers):
     g.manual_seed(seed)
 
     if model_name in ['Lestrade', 'Watson', 'Sherlock']:
-        if model_name == 'Watson':
+        if adverserial_training == True:
             print("Use transformation for ResNet18 but without normalization")
             transform = transforms.Compose([
                 transforms.RandomResizedCrop(224),

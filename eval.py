@@ -32,7 +32,7 @@ def main():
 
     # Load Model and data
     model, _, _, _ = load_model(model_name, config, device)
-    test_dataloader = load_data(test_path, batch_size, model_name, seed, num_workers)
+    test_dataloader = load_data(test_path, batch_size, model_name, seed, num_workers, False)
     print(f"Evaluating on adversarial test set: {test_adv_bool}")
 
     # Evaluate

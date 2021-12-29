@@ -60,11 +60,9 @@ def main():
 
     # Load data
     print("\nTrain Dataloader:")
-    train_dataloader = load_data(train_path, batch_size, model_name, seed, num_workers)
+    train_dataloader = load_data(train_path, batch_size, model_name, seed, num_workers, False)
     print("\nVal Dataloader:")
-    val_dataloader = load_data(val_path, batch_size, model_name, seed, num_workers)
-    print("\nTest Dataloader")
-    test_dataloader = load_data(test_path_adv, batch_size, model_name, seed, num_workers)
+    val_dataloader = load_data(val_path, batch_size, model_name, seed, num_workers, False)
 
     # Model
     model, _, _, _ = load_model(model_name, config, device, finetune=finetune)
@@ -75,9 +73,12 @@ def main():
 
     # Main loop
     for epoch in range(epochs):
-        train(model, optimizer, train_dataloader, epoch, device)
-        loss_val = validation(model, val_dataloader, epoch, device)
-        _ = validation_test(model, test_dataloader, epoch, device)
+        try:
+            train(model, optimizer, train_dataloader, epoch, device)
+            loss_val = validation(model, val_dataloader, epoch, device)
+        except:
+            print("Exception occured. We skip to next epoch")
+            continue
 
         # check early stopping
         early_stopping(loss_val, model, epoch)
@@ -139,36 +140,6 @@ def validation(model, dataloader, epoch, device, binary_thresh=0.5):
 
     return loss_val
 
-
-def validation_test(model, dataloader, epoch, device, binary_thresh=0.5):
-    """"Validation loop over batches for one epoch"""
-
-    model.eval()
-    loss_sum, accuracy = 0, 0
-    with torch.no_grad():
-        with tqdm(dataloader) as tepoch:
-            for batch, (X, y) in enumerate(tepoch):
-                X, y = X.to(device), y.to(device)
-                out = model(X)
-                loss = F.binary_cross_entropy(out, torch.unsqueeze(y.to(torch.float32), dim=1))
-
-                loss_sum += loss.item()
-                loss_val = loss_sum/(batch+1)
-                tepoch.set_description("Test")
-                tepoch.set_postfix(loss = loss_val)
-
-                accuracy += calc_accuracy(out, y)
-
-                wandb.log({'accuracy-test': calc_accuracy(out, y)})
-
-            print(f"Test loss end epoch {epoch}: {loss_val:.6f}")
-            wandb.log({"loss(end)-test": loss_val})
-
-            acc = accuracy/(batch+1)
-            print(f"Test acc end epoch {epoch}: {acc:.6f}")
-            wandb.log({"accuracy(end)-test": acc})
-
-    return loss_val
 
 
 def calc_accuracy(y_pred, y_true, binary_thresh=0.5):

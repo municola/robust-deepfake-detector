@@ -27,7 +27,6 @@ def main():
     learning_rate = config['learning_rate']
     patience = config['early_stopping_patience']
     epsilon = config['adversarial_eps']
-    test_path_adv = config['test_adv_path']
     finetune = config['finetune']
     num_workers = config['num_workers']
     model_name = config['model_name']
@@ -60,11 +59,9 @@ def main():
 
     # Load data
     print("\nTrain Dataloader:")
-    train_dataloader = load_data(train_path, batch_size, model_name, seed, num_workers)
+    train_dataloader = load_data(train_path, batch_size, model_name, seed, num_workers, True)
     print("\nVal Dataloader:")
-    val_dataloader = load_data(val_path, batch_size, model_name, seed, num_workers)
-    print("\nTest Dataloader")
-    test_dataloader = load_data(test_path_adv, batch_size, model_name, seed, num_workers)
+    val_dataloader = load_data(val_path, batch_size, model_name, seed, num_workers, True)
 
     # Model
     model, _, _, _ = load_model(model_name, config, device, finetune=finetune)
@@ -75,17 +72,18 @@ def main():
 
     # Make one validation run
     _ = validation(model, val_dataloader, 0, device, epsilon)
-    _ = validation_test(model, test_dataloader, 0, device, epsilon)
 
     # Loop over the Epochs
     for epoch in range(epochs):
-        train(model, optimizer, train_dataloader, epoch, device, epsilon, model_name, config)
-        loss_val = validation(model, val_dataloader, epoch, device, epsilon)
-        _ = validation_test(model, test_dataloader, epoch, device, epsilon)
+        try:
+            train(model, optimizer, train_dataloader, epoch, device, epsilon, model_name, config)
+            loss_val = validation(model, val_dataloader, epoch, device, epsilon)
+        except:
+            print('An exception occured, we skip this epoch')
 
         # check early stopping
-        if epoch >= 19:
-            early_stopping(loss_val, model)
+        if epoch >= 0:
+            early_stopping(loss_val, model, epoch)
             if early_stopping.early_stop:
                 print(f"Early stopping at epoch {epoch}")
                 break
@@ -180,44 +178,6 @@ def validation(model, dataloader, epoch, device, epsilon, binary_thresh=0.5):
         acc = accuracy/(batch+1)
         wandb.log({"accuracy(end)-val": acc})
         print(f"Val acc end epoch {epoch}: {acc:.6f}")
-
-    return loss_val
-
-
-def validation_test(model, dataloader, epoch, device, epsilon, binary_thresh=0.5):
-    """"Validation loop over batches for one epoch"""
-
-    model.eval()
-    loss_sum, accuracy = 0, 0
-
-    i = 0
-    with tqdm(dataloader) as tepoch:
-        for batch, (X, y) in enumerate(tepoch):
-            X, y = X.to(device), y.to(device)
-            loss_fn = F.binary_cross_entropy
-            y = torch.unsqueeze(y.to(torch.float32), dim=1)
-
-            # Normalize X_adv
-            normalizeTransformation = transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-            X = normalizeTransformation(X)
-
-            with torch.no_grad():
-                out = model(X)
-
-            loss = loss_fn(out,y)
-
-            loss_sum += loss.item()
-            loss_val = loss_sum/(batch+1)
-            accuracy += calc_accuracy(out, y)
-
-            tepoch.set_description("Validation Test")
-            tepoch.set_postfix(loss = loss_val)
-            wandb.log({'accuracy-test': calc_accuracy(out, y)})
-            wandb.log({"loss-test": loss_val})
-
-        acc = accuracy/(batch+1)
-        wandb.log({"accuracy(end)-test": acc})
-        print(f"Test acc end epoch {epoch}: {acc:.6f}")
 
     return loss_val
 

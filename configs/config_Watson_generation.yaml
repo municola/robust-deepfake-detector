@@ -15,7 +15,6 @@ test_path: "./data/test"
 eval_res_path: "./eval_results"
 test_adv_path: "./data/test_adv_v2" # test_adv_v1 (FGSM 0.01), test_adv_v2 (LinPGD 0.05), test_adv_v3 (LinPGD 0.01)
 
-
 test_adv_bool: False # Evaluate on the adversarial test set (True, False)
 
 seed: 1234
