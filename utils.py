@@ -185,10 +185,16 @@ def load_data(data_path, batch_size, model_name, seed, num_workers):
 
     if model_name in ['Lestrade2', 'Watson2', 'Sherlock2']:
         print("Use transformation for VGG pretrained network model")
-        transform = transforms.Compose([
-            transforms.RandomResizedCrop(224),
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        if model_name == 'Watson2':
+            transform = transforms.Compose([
+                transforms.RandomResizedCrop(224),
+                transforms.ToTensor(),
+            ])
+        else:
+            transform = transforms.Compose([
+                transforms.RandomResizedCrop(224),
+                transforms.ToTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
     else:
         print("Use no transformation")

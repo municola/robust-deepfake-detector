@@ -9,8 +9,7 @@ from utils import EarlyStopping
 from attacks import *
 from advertorch.context import ctx_noparamgrad_and_eval
 import wandb
-import numpy as np
-import random
+from torchvision import transforms
 
 def main():
     """"Main training loop for discriminator model"""
@@ -62,24 +61,24 @@ def main():
     print("\nVal:")
     val_dataloader = load_data(val_path, batch_size, model_name, seed, num_workers)
     print("\ntest")
-    test_dataloader1 = load_data(test_path_adv, batch_size, model_name, seed, num_workers)
-    test_dataloader2 = load_data(test_path_adv, batch_size, model_name, seed, num_workers)
-    test_dataloader3 = load_data(test_path_adv, batch_size, model_name, seed, num_workers)
+    test_dataloader = load_data(test_path_adv, batch_size, model_name, seed, num_workers)
 
     # Model
     model, _, _, _ = load_model(model_name, config, device, finetune=finetune)
-    model_summary2(model) # nr of params
+    model_summary2(model)
     wandb.watch(model)
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     early_stopping = EarlyStopping(patience=patience, verbose=True, path=path_model)
 
+    # Make one validation run
+    _ = validation(model, val_dataloader, 0, device, epsilon)
+    _ = validation_test(model, test_dataloader, 0, device, epsilon)
+
     # Loop over the Epochs
     for epoch in range(epochs):
-        _ = validation_test(model, test_dataloader1, epoch, device, epsilon)
         train(model, optimizer, train_dataloader, epoch, device, epsilon, model_name, config)
-        _ = validation_test(model, test_dataloader2, epoch, device, epsilon)
         loss_val = validation(model, val_dataloader, epoch, device, epsilon)
-        _ = validation_test(model, test_dataloader3, epoch, device, epsilon)
+        _ = validation_test(model, test_dataloader, epoch, device, epsilon)
 
         # check early stopping
         if epoch >= 19:
@@ -90,6 +89,7 @@ def main():
 
         # Save every checkpoint
         savepath = path_model + "_epoch_"  + str(epoch) + "_" + ".pt"
+        print('Saving model to:', savepath)
         torch.save(model.state_dict(), savepath)
             
     # load the last checkpoint with the best model
@@ -102,7 +102,6 @@ def train(model, optimizer, dataloader, epoch, device, epsilon, model_name, conf
 
     loss_sum = 0
     accuracy = 0
-    i = 0
     with tqdm(dataloader) as tepoch:
         for batch, (X, y) in enumerate(tepoch):
             optimizer.zero_grad()
@@ -116,19 +115,21 @@ def train(model, optimizer, dataloader, epoch, device, epsilon, model_name, conf
             else:
                 eps = epsilon
 
-            # Generate the adversarial
+            # Generate the adversarial with non-normalized X
             with ctx_noparamgrad_and_eval(model):
                 X_adv, _ = FGSM_attack(X, y, model, loss_fn, eps=eps)
-            X_adv = X
 
-            model.eval()
+            # Normalize X_adv
+            normalizeTransformation = transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+            X_adv = normalizeTransformation(X_adv)
+
+            # Calculate loss
             out = model(X_adv)
-
             loss = loss_fn(out, y)
 
             optimizer.zero_grad()
             loss.backward()
-            #optimizer.step()
+            optimizer.step()
 
             loss_sum += loss.item()
             accuracy += calc_accuracy(out, y)
@@ -137,9 +138,6 @@ def train(model, optimizer, dataloader, epoch, device, epsilon, model_name, conf
             tepoch.set_postfix(loss = loss_sum/(batch+1))
             wandb.log({"loss-train": loss_sum/(batch+1)})
             wandb.log({'accuracy-train': calc_accuracy(out, y)})
-            i += 1
-            if (i > 10):
-                break
 
         acc = accuracy/(batch+1)
         wandb.log({"accuracy-train(epoch end)": acc})
@@ -168,8 +166,11 @@ def validation(model, dataloader, epoch, device, epsilon, binary_thresh=0.5):
             with ctx_noparamgrad_and_eval(model):
                 X_adv, _ = LinfPGD_Attack(X, y, model, loss_fn, eps=eps, eps_iter=eps/10, nb_iter=20)
 
-            out = model(X_adv)
+            # Normalize X_adv
+            normalizeTransformation = transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+            X_adv = normalizeTransformation(X_adv)
 
+            out = model(X_adv)
             loss = loss_fn(out,y)
 
             loss_sum += loss.item()
@@ -183,7 +184,7 @@ def validation(model, dataloader, epoch, device, epsilon, binary_thresh=0.5):
 
         acc = accuracy/(batch+1)
         wandb.log({"accuracy(end)-val": acc})
-        print(f"Val acc ennd epoch {epoch}: {acc:.6f}")
+        print(f"Val acc end epoch {epoch}: {acc:.6f}")
 
     return loss_val
 
@@ -201,6 +202,10 @@ def validation_test(model, dataloader, epoch, device, epsilon, binary_thresh=0.5
             loss_fn = F.binary_cross_entropy
             y = torch.unsqueeze(y.to(torch.float32), dim=1)
 
+            # Normalize X_adv
+            normalizeTransformation = transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+            X = normalizeTransformation(X)
+
             with torch.no_grad():
                 out = model(X)
 
@@ -215,14 +220,9 @@ def validation_test(model, dataloader, epoch, device, epsilon, binary_thresh=0.5
             wandb.log({'accuracy-test': calc_accuracy(out, y)})
             wandb.log({"loss-test": loss_val})
 
-            if i > 10:
-                #print(X[0,0,0,0])
-                break
-            i += 1
-
         acc = accuracy/(batch+1)
         wandb.log({"accuracy(end)-test": acc})
-        print(f"Test acc in epoch {epoch}: {acc:.6f}")
+        print(f"Test acc end epoch {epoch}: {acc:.6f}")
 
     return loss_val
 

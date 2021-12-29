@@ -1,6 +1,7 @@
 model_name: "Watson2" # Lestrade, Watson, Sherlock, Lestrade2, Watson2, Sherlock2, Polimi
 
 version: 2 # 1, 2 (1: Simple Detector, 2: With pretrained Network)
+finetune: True # For Version 2 (In adversarial training we unfreeze all layers aka finetune)
 
 path_model_watson: "./detective/checkpoints/checkpoint_watson.pt"
 path_model_sherlock: "./detective/checkpoints/checkpoint_sherlock_v3.pt"
@@ -17,17 +18,15 @@ eval_res_path: "./eval_results"
 
 test_adv_bool: False # Evaluate on the adversarial test set (True, False)
 
-finetune: True # For Version 2
-
 seed: 1234
 batch_size: 32
-learning_rate: 0.001
+learning_rate: 0.00001
 epochs_training: 20
 epochs_adversarial_training: 20
 early_stopping_patience: 3
-num_workers: 2
+num_workers: 8
 
 adversarial_attack_type: "LinfPGD" # LinfPGD, PGD, FGSM
 adversarial_eps: 0.001
 
-wandb_logging: False
+wandb_logging: True
