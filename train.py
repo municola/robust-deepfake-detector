@@ -75,9 +75,9 @@ def main():
 
     # Main loop
     for epoch in range(epochs):
-        #train(model, optimizer, train_dataloader, epoch, device)
+        train(model, optimizer, train_dataloader, epoch, device)
         loss_val = validation(model, val_dataloader, epoch, device)
-        #_ = validation_test(model, test_dataloader, epoch, device)
+        _ = validation_test(model, test_dataloader, epoch, device)
 
         # check early stopping
         early_stopping(loss_val, model, epoch)
