@@ -1,0 +1,33 @@
+##### CHANGE THIS ########
+model_name: "Sherlock" # Watson, Sherlock, Polimi
+test_adv_path: "./data/test_adv_v2" # test_adv_v1 (FGSM 0.01), test_adv_v2 (LinPGD 0.05), test_adv_v3 (LinPGD 0.01)
+##########################
+
+finetune: False # To unfreeze all layers (from pretrained network)
+
+path_model_moriaty: "./models/checkpoints/moriaty.pt"
+path_model_moriaty_adv: "./models/checkpoints/moriaty_adv.pt"
+
+path_model_watson: "./models/checkpoints/watson.pt"
+path_model_watson_finetuned: "./models/checkpoints/watson_finetuned.pt"
+path_model_sherlock: "./models/checkpoints/sherlock.pt"
+
+train_path: "./data/train"
+val_path: "./data/val"
+test_path: "./data/test"
+eval_res_path: "./eval_results"
+
+test_adv_bool: False # Evaluate on the adversarial test set (True, False)
+
+seed: 1234
+batch_size: 32
+learning_rate: 0.001
+epochs_training: 20
+epochs_adversarial_training: 20
+early_stopping_patience: 3
+num_workers: 24
+
+adversarial_attack_type: "LinfPGD" # LinfPGD, PGD, FGSM
+adversarial_eps: 0.05
+
+wandb_logging: True

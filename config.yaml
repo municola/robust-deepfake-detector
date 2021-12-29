@@ -1,32 +1,31 @@
-model_name: "Watson2" # Lestrade, Watson, Sherlock, Lestrade2, Watson2, Sherlock2, Polimi
+model_name: "Moriaty_untrained" # Moriaty_untrained, Moriaty, Lestrade, Watson, Sherlock, Polimi
 
-version: 2 # 1, 2 (1: Simple Detector, 2: With pretrained Network)
-finetune: True # For Version 2 (In adversarial training we unfreeze all layers aka finetune)
+finetune: False # To unfreeze all layers (from pretrained network)
 
-path_model_watson: "./detective/checkpoints/checkpoint_watson.pt"
-path_model_sherlock: "./detective/checkpoints/checkpoint_sherlock_v3.pt"
+path_model_moriaty: "./models/checkpoints/moriaty.pt"
+path_model_moriaty_adv: "./models/checkpoints/moriaty_adv.pt"
 
-path_model_watson2: "./detective/checkpoints/checkpoint_watson2_v2.pt"
-path_model_watson2_finetuned: "./detective/checkpoints/checkpoint_watson2_v1_finetuned_v1.pt"
-path_model_sherlock2: "./detective/checkpoints/checkpoint_sherlock2_epoch_0_.pt"
+path_model_watson: "./models/checkpoints/watson.pt"
+path_model_watson_finetuned: "./models/checkpoints/watson_finetuned.pt"
+path_model_sherlock: "./models/checkpoints/sherlock.pt"
 
 train_path: "./data/train"
 val_path: "./data/val"
 test_path: "./data/test"
-test_adv_path: "./data/test_adv_v1"
 eval_res_path: "./eval_results"
+test_adv_path: "./data/test_adv_v2" # test_adv_v1 (FGSM 0.01), test_adv_v2 (LinPGD 0.05), test_adv_v3 (LinPGD 0.01)
 
 test_adv_bool: False # Evaluate on the adversarial test set (True, False)
 
 seed: 1234
 batch_size: 32
-learning_rate: 0.00001
+learning_rate: 0.001
 epochs_training: 20
 epochs_adversarial_training: 20
 early_stopping_patience: 3
-num_workers: 8
+num_workers: 24
 
 adversarial_attack_type: "LinfPGD" # LinfPGD, PGD, FGSM
-adversarial_eps: 0.001
+adversarial_eps: 0.05
 
 wandb_logging: True

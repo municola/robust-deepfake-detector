@@ -5,7 +5,7 @@ from tqdm import tqdm
 import yaml
 import argparse
 from utils import EarlyStopping
-from utils import model_summary, model_summary2, set_seed, load_data, load_model
+from utils import model_summary, set_seed, load_data, load_model
 import wandb
 from attacks import *
 
@@ -25,10 +25,11 @@ def main():
     epochs = config['epochs_training']
     learning_rate = config['learning_rate']
     patience = config['early_stopping_patience']
-    version = config['version']
     finetune = config['finetune']
     test_path_adv = config['test_adv_path']
-
+    model_name = config['model_name']
+    num_workers = config['num_workers']
+    
     # Wandb support
     mode = "online" if config['wandb_logging'] else "disabled"
     wandb.init(
@@ -38,19 +39,17 @@ def main():
         mode=mode
     )
 
-    # Model is always Lestrade (After training it becomes Watson)
-    if version == 1:
-        model_name = 'Lestrade'
-        path_model = config['path_model_watson']
-    elif version == 2:
-        if finetune:
-            model_name = 'Watson2'
-            path_model = config['path_model_watson2_finetuned']
-        else:
-            model_name = 'Lestrade2'
-            path_model = config['path_model_watson2']
+    # Set save path
+    if model_name == 'Lestrade':
+        save_path = config['path_model_watson']
+    elif model_name == 'Watson':
+        assert finetune == True
+        save_path = config['path_model_watson_finetuned']
+    elif model_name == 'Moriaty_untrained':
+        save_path = config['path_model_moriaty']
     else:
-        raise ValueError("No such version exist currently")
+        raise ValueError("This Model version should not be trained")
+    save_path = save_path[:-3] + '_newrun.pt'
 
     # Set seed
     set_seed(seed)
@@ -60,41 +59,31 @@ def main():
     print(f"\nUsing device: {device}")
 
     # Load data
-    print("\nTrain:")
-    train_dataloader = load_data(train_path, batch_size, model_name)
-    print("\nVal:")
-    val_dataloader = load_data(val_path, batch_size, model_name)
-    print("\ntest")
-    test_dataloader = load_data(test_path_adv, batch_size, model_name)
-
+    print("\nTrain Dataloader:")
+    train_dataloader = load_data(train_path, batch_size, model_name, seed, num_workers)
+    print("\nVal Dataloader:")
+    val_dataloader = load_data(val_path, batch_size, model_name, seed, num_workers)
+    print("\nTest Dataloader")
+    test_dataloader = load_data(test_path_adv, batch_size, model_name, seed, num_workers)
 
     # Model
-    print("Modified adversarial training in the train.py file!!!!")
     model, _, _, _ = load_model(model_name, config, device, finetune=finetune)
-    model_summary2(model)
+    model_summary(model, model_name)
     wandb.watch(model)
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-    #scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, min_lr=1e-5, eps=1e-5,
-    #                                             patience=patience-1)
-    early_stopping = EarlyStopping(patience=patience, verbose=True, path=path_model)
-    #print(f"Scheduled LR reduction after {patience-1} epochs without improvement")
+    early_stopping = EarlyStopping(patience=patience, verbose=True, path=save_path, saveEveryEpoch=True)
 
     # Main loop
     for epoch in range(epochs):
-        train(model, optimizer, train_dataloader, epoch, device)
+        #train(model, optimizer, train_dataloader, epoch, device)
         loss_val = validation(model, val_dataloader, epoch, device)
-
-        #scheduler.step(loss_val)
-        _ = validation_test(model, test_dataloader, epoch, device)
+        #_ = validation_test(model, test_dataloader, epoch, device)
 
         # check early stopping
-        early_stopping(loss_val, model)
+        early_stopping(loss_val, model, epoch)
         if early_stopping.early_stop:
             print(f"Early stopping at epoch {epoch}")
             break
-        
-    # load the last checkpoint with the best model
-    model.load_state_dict(torch.load(path_model))
         
     
 def train(model, optimizer, dataloader, epoch, device):
@@ -150,6 +139,7 @@ def validation(model, dataloader, epoch, device, binary_thresh=0.5):
 
     return loss_val
 
+
 def validation_test(model, dataloader, epoch, device, binary_thresh=0.5):
     """"Validation loop over batches for one epoch"""
 
@@ -182,7 +172,7 @@ def validation_test(model, dataloader, epoch, device, binary_thresh=0.5):
 
 
 def calc_accuracy(y_pred, y_true, binary_thresh=0.5):
-    """Accuracy for a given decision threshold."""
+    """Calculate accuracy for a given decision threshold."""
 
     hard_pred = (y_pred>binary_thresh).float()
     correct = (torch.squeeze(hard_pred, dim=1) == y_true).float().sum()

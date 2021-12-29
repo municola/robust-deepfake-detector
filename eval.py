@@ -23,6 +23,8 @@ def main():
     eval_res_path = config['eval_res_path']
     test_adv_bool = config['test_adv_bool'] # Important to correctly specify!
     test_path = config['test_adv_path'] if test_adv_bool else config['test_path']
+    seed = config['seed']
+    num_workers = config['num_workers']
 
     # Set device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -30,7 +32,7 @@ def main():
 
     # Load Model and data
     model, _, _, _ = load_model(model_name, config, device)
-    test_dataloader = load_data(test_path, batch_size, model_name)
+    test_dataloader = load_data(test_path, batch_size, model_name, seed, num_workers)
     print(f"Evaluating on adversarial test set: {test_adv_bool}")
 
     # Evaluate

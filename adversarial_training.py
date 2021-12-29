@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import yaml
 import argparse
 from tqdm import tqdm
-from utils import load_model, model_summary, model_summary2, set_seed, load_data
+from utils import load_model, model_summary, set_seed, load_data
 from utils import EarlyStopping
 from attacks import *
 from advertorch.context import ctx_noparamgrad_and_eval
@@ -27,10 +27,10 @@ def main():
     learning_rate = config['learning_rate']
     patience = config['early_stopping_patience']
     epsilon = config['adversarial_eps']
-    version = config['version']
     test_path_adv = config['test_adv_path']
     finetune = config['finetune']
     num_workers = config['num_workers']
+    model_name = config['model_name']
 
     # Wandb support
     mode = "online" if config['wandb_logging'] else "disabled"
@@ -40,35 +40,38 @@ def main():
         config=config, 
         mode=mode
     )
-    
-    # Model is always Watson (After training it becomes Sherlock)
-    if version == 1:
-        model_name = 'Watson'
-        path_model = config['path_model_sherlock']
-    elif version == 2:
-        model_name = 'Watson2'
-        path_model = config['path_model_sherlock2']
+
+    # Set save path
+    if model_name == 'Watson':
+        assert finetune == True
+        save_path = config['path_model_sherlock']
+    elif model_name == 'Moriaty':
+        save_path = config['path_model_moriaty_adv']
     else:
-        raise ValueError("This version is not yet supported.")
+        raise ValueError("This Model version should not be trained")
+    save_path = save_path[:-3] + '_newrun.pt'
+
+    # Set seed
+    set_seed(seed)
 
     # Set Device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"\nUsing device: {device}")
 
     # Load data
-    print("\nTrain:")
+    print("\nTrain Dataloader:")
     train_dataloader = load_data(train_path, batch_size, model_name, seed, num_workers)
-    print("\nVal:")
+    print("\nVal Dataloader:")
     val_dataloader = load_data(val_path, batch_size, model_name, seed, num_workers)
-    print("\ntest")
+    print("\nTest Dataloader")
     test_dataloader = load_data(test_path_adv, batch_size, model_name, seed, num_workers)
 
     # Model
     model, _, _, _ = load_model(model_name, config, device, finetune=finetune)
-    model_summary2(model)
+    model_summary(model, model_name)
     wandb.watch(model)
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-    early_stopping = EarlyStopping(patience=patience, verbose=True, path=path_model)
+    early_stopping = EarlyStopping(patience=patience, verbose=True, path=save_path, saveEveryEpoch=True)
 
     # Make one validation run
     _ = validation(model, val_dataloader, 0, device, epsilon)
@@ -86,14 +89,6 @@ def main():
             if early_stopping.early_stop:
                 print(f"Early stopping at epoch {epoch}")
                 break
-
-        # Save every checkpoint
-        savepath = path_model + "_epoch_"  + str(epoch) + "_" + ".pt"
-        print('Saving model to:', savepath)
-        torch.save(model.state_dict(), savepath)
-            
-    # load the last checkpoint with the best model
-    model.load_state_dict(torch.load(path_model))
         
     
 def train(model, optimizer, dataloader, epoch, device, epsilon, model_name, config):
@@ -117,7 +112,7 @@ def train(model, optimizer, dataloader, epoch, device, epsilon, model_name, conf
 
             # Generate the adversarial with non-normalized X
             with ctx_noparamgrad_and_eval(model):
-                X_adv, _ = FGSM_attack(X, y, model, loss_fn, eps=eps)
+                X_adv, _ = LinfPGD_Attack(X, y, model, loss_fn, eps=eps, eps_iter=eps/10, nb_iter=20)
 
             # Normalize X_adv
             normalizeTransformation = transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
