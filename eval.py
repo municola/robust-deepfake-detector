@@ -34,7 +34,8 @@ def main():
     model, _, _, _ = load_model(model_name, config, device)
     test_dataloader = load_data(test_path, batch_size, model_name, seed, num_workers, False)
     print(f"Evaluating on adversarial test set: {test_adv_bool}")
-
+    print(f"Evaluating of test set: {test_path}")
+    
     # Evaluate
     if model_name == "Polimi":
         y_true, y_pred = evaluate_polimi(model, model_name, test_path, test_adv_bool)
@@ -42,8 +43,9 @@ def main():
         y_true, y_pred = evaluate(model, model_name, test_dataloader, device)
 
     # Save model results to file (save ROC plot manually)
-    np.savetxt(eval_res_path + "/y_true_" + model_name + ".csv", y_true, delimiter=",")
-    np.savetxt(eval_res_path + "/y_pred_" + model_name + ".csv", y_pred, delimiter=",")
+    testset = os.path.basename(os.path.normpath(test_path))
+    np.savetxt(eval_res_path + "/y_true_" + model_name + "_" + testset + ".csv", y_true, delimiter=",")
+    np.savetxt(eval_res_path + "/y_pred_" + model_name + "_" + testset +".csv", y_pred, delimiter=",")
 
 
 def evaluate(model, model_name, dataloader, device):

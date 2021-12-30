@@ -1,4 +1,4 @@
-model_name: "Watson" # Moriaty_untrained, Moriaty, Lestrade, Watson, Sherlock, Polimi
+model_name: "Moriaty" # Moriaty_untrained, Moriaty, Lestrade, Watson, Sherlock, Polimi
 
 finetune: True # To unfreeze all layers (from pretrained network)
 
