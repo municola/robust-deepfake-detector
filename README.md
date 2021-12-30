@@ -29,7 +29,7 @@ Follow this filestructure for you weights, data, folders and checkpoints<br>
 |          |   adv1   | 0.792699 | 0.7003 |
 |          |   adv2   | 0.716880 | 0.6211 |
 |          |   adv3   | 0.931072 | 0.7169 |
-|----------|----------|----------|--------|
+|          |          |          |        |
 | Watson   |  normal  | 0.992820 | 0.9464 |
 |          |   adv1   | 0.981916 | 0.9182 |
 |          |   adv2   | 0.898157 | 0.7183 |
