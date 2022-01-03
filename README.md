@@ -1,4 +1,4 @@
-# Fake image detectors are worse than you think [[PDF](https://github.com/municola/rivust-deepfake-detector/blob/master/reports/Report.pdf)]
+# Fake image detectors are worse than you think [[PDF](https://github.com/municola/robust-deepfake-detector/blob/master/reports/Report.pdf)]
 The recently published synthetic image generator StyleGAN3  generates  state  of  the  art  human-like  images.  In  orderto  not  have  these  images  used  maleficently  as  deepfakes,they  launched  a  fake  image  detection  contest  in  which  thePoliMi  team  won  with  staggering  performance.  Hence,they  conclude  that  state  of  the  art  detection  algorithms  areeffective  at  detecting  fake  images  in  a  open-world  setting.In  this  work  we  argue  that  in  a  truly  open-world  settingthe  adversary  will  not  stop  after  having  generated  syntheticimages. Instead, the attacker will add adversarial perturbationsto the images, making use of adversarial transferability whichimplies  that  a  targeted  perturbation  on  a  self-made  detectorwill have high chances to also work on the black-box syntheticimage detector.We  show  that  with  a  simple  detector  architecture  we  canperturb  images  enough  to  deteriorate  the  performance  of  thestate  of  the  art  synthetic  image  detector.  Hence,  we  arguethat  in  a  truly  open-world  setting  the  current  state  of  the  artdetectors are unable to detect fake images by an adversary.We  then  design  our  own  synthetic  image  detector  and  showthat  using  adversarial  training,  we  can  make  it  much  morerobust to adversarial black-box perturbations. We conclude byadvocating the importance of adversarial training as well as ro-bust architectures when designing synthetic image generatorsin order to work in a real-life setting.
 
 ## Setup
@@ -10,9 +10,9 @@ Here is a small description of the most important files:
 - generate_adversarials.py (Run this file to generate the adversarial test sets)
 - eval.py (With this file you can evaluate a model on a given test set. We report AUCROC and Accuracy)
 
-For each of these main four files a config-file is used, that describes all necerssary parameters. In order to give you an intuition what parameters would be expected we have created sample config files in the /config folder. The used config file for any run is however the config.yaml file in the main folder.<br><br>
+For each of these main four files a config-file is used, that describes all necerssary parameters. In order to give you an intuition what parameters would be expected we have created sample config files in the /config folder. The used config file for any run is however the config.yaml file in the main folder.<br>
 
-For any further information we ask you to read through the comments in the code and the [report](https://github.com/municola/rivust-deepfake-detector/blob/master/reports/Report.pdf). If it is still unclear you can write us an E-Mail or open a new issue.
+For any further information we ask you to read through the comments in the code and the [report](https://github.com/municola/robust-deepfake-detector/blob/master/reports/Report.pdf). If it is still unclear you can write us an E-Mail or open a new issue.
 
 ## Results
 
@@ -55,7 +55,6 @@ If you run into issues you may find a fix in the sections below. Otherwise pleas
 
 ### Expected file structure:
 Follow this filestructure for you weights, data, folders and checkpoints<br>
-<br>
 - data
   - test
   - test_adv_v1
@@ -94,8 +93,8 @@ wget https://polybox.ethz.ch/index.php/s/V3WwMQ3wnrW6rGN/download?path=%2Fcheckp
 - [val](https://polybox.ethz.ch/index.php/s/V3WwMQ3wnrW6rGN?path=%2Fval)
 - [test](https://polybox.ethz.ch/index.php/s/V3WwMQ3wnrW6rGN?path=%2Ftest)
 - [test_adv_v1](https://polybox.ethz.ch/index.php/s/V3WwMQ3wnrW6rGN?path=%2Ftest_adv_v1)
-- [test_adv_v2](https://polybox.ethz.ch/index.php/s/V3WwMQ3wnrW6rGN?path=%2Ftest_adv_v2)
-- [test_adv_v3](https://polybox.ethz.ch/index.php/s/V3WwMQ3wnrW6rGN?path=%2Ftest_adv_v3)
+- [test_adv_v2](https://polybox.ethz.ch/index.php/s/V3WwMQ3wnrW6rGN?path=%2Ftest_adv_v2.zip)
+- [test_adv_v3](https://polybox.ethz.ch/index.php/s/V3WwMQ3wnrW6rGN?path=%2Ftest_adv_v3.zip)
 
 5. Finish.
 
