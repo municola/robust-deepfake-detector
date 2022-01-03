@@ -30,7 +30,7 @@ def main():
 
     # Model + data
     model, _, _, _ = load_model(model_name, config, device)
-    test_dataloader = load_data(test_path, batch_size, model_name, seed, num_workers)
+    test_dataloader = load_data(test_path, batch_size, model_name, seed, num_workers, True)
 
     # Generate directory to store adv. samples that satisfies assert statement.
     # Make sure that the directory doesn't exist in-place already, i.e.

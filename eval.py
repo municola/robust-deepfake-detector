@@ -45,7 +45,7 @@ def main():
     # Save model results to file (save ROC plot manually)
     testset = os.path.basename(os.path.normpath(test_path))
     np.savetxt(eval_res_path + "/y_true_" + model_name + "_" + testset + ".csv", y_true, delimiter=",")
-    np.savetxt(eval_res_path + "/y_pred_" + model_name + "_" + testset +".csv", y_pred, delimiter=",")
+    np.savetxt(eval_res_path + "/y_pred_" + model_name + "_" + testset + ".csv", y_pred, delimiter=",")
 
 
 def evaluate(model, model_name, dataloader, device):

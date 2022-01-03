@@ -1,25 +1,18 @@
-# Fake image detectors are worse than you think
+# Fake image detectors are worse than you think [[PDF](https://github.com/municola/rivust-deepfake-detector/blob/master/reports/Report.pdf)]
+The recently published synthetic image generator StyleGAN3  generates  state  of  the  art  human-like  images.  In  orderto  not  have  these  images  used  maleficently  as  deepfakes,they  launched  a  fake  image  detection  contest  in  which  thePoliMi  team  won  with  staggering  performance.  Hence,they  conclude  that  state  of  the  art  detection  algorithms  areeffective  at  detecting  fake  images  in  a  open-world  setting.In  this  work  we  argue  that  in  a  truly  open-world  settingthe  adversary  will  not  stop  after  having  generated  syntheticimages. Instead, the attacker will add adversarial perturbationsto the images, making use of adversarial transferability whichimplies  that  a  targeted  perturbation  on  a  self-made  detectorwill have high chances to also work on the black-box syntheticimage detector.We  show  that  with  a  simple  detector  architecture  we  canperturb  images  enough  to  deteriorate  the  performance  of  thestate  of  the  art  synthetic  image  detector.  Hence,  we  arguethat  in  a  truly  open-world  setting  the  current  state  of  the  artdetectors are unable to detect fake images by an adversary.We  then  design  our  own  synthetic  image  detector  and  showthat  using  adversarial  training,  we  can  make  it  much  morerobust to adversarial black-box perturbations. We conclude byadvocating the importance of adversarial training as well as ro-bust architectures when designing synthetic image generatorsin order to work in a real-life setting.
 
-## Links
-Data: [Polybox](https://polybox.ethz.ch/index.php/s/V3WwMQ3wnrW6rGN) <br>
-Paper: [Overleaf](https://www.overleaf.com/project/61c44cf78f5dca7afa502280)
+## Setup
+In order to run any file, please follow the Installation intructions in the *Installation* section.<br>
+Here is a small description of the most important files:
 
-## Expected file structure:
-Follow this filestructure for you weights, data, folders and checkpoints<br>
-<br>
-- data
-  - test
-  - test_adv_v1
-  - test_adv_v2
-  - test_adv_v3
-  - train
-  - val
-- models
-  - checkpoints
-- eval_results
-- polimi
-  - weights
-- stylegan3
+- train.py (Run this file to train a model on the normal data set)
+- adversarial_training.py (Run this file to use adversarial training on a model)
+- generate_adversarials.py (Run this file to generate the adversarial test sets)
+- eval.py (With this file you can evaluate a model on a given test set. We report AUCROC and Accuracy)
+
+For each of these main four files a config-file is used, that describes all necerssary parameters. In order to give you an intuition what parameters would be expected we have created sample config files in the /config folder. The used config file for any run is however the config.yaml file in the main folder.<br><br>
+
+For any further information we ask you to read through the comments in the code and the [report](https://github.com/municola/rivust-deepfake-detector/blob/master/reports/Report.pdf). If it is still unclear you can write us an E-Mail or open a new issue.
 
 ## Results
 
@@ -47,16 +40,69 @@ Follow this filestructure for you weights, data, folders and checkpoints<br>
 
 normal: normal testset with stylegan3 and ffhq <br>
 adv1: adversarial attack FGSM with eps=0.01 <br>
-adv2: adversarial attack LinfPGD with eps=0.05 <br>
-adv3: adversarial attack LinfPGD with eps=0.01 <br>
+adv2: adversarial attack PGD with eps=0.05 <br>
+adv3: adversarial attack PGD with eps=0.01 <br>
 
 
 ## Installation
 
-### Running attacks/generate_adversarials
+1.  ```git clone https://github.com/municola/robust-deepfake-detector.git```
+2. We expect the file structure denoted below in section (*Expeted file structure*). Please follow it.
+3. Install the necessary dependencies in the section below (*Intalling dependencies*)
+4. Finish. 
 
-1. ```pip install advertorch```
-3. Add the zero_gradients(x) function to advertorch/attacks/utils.py (Carful: Do this in your corresponding conda environment!). See this [thread](https://discuss.pytorch.org/t/from-torch-autograd-gradcheck-import-zero-gradients/127462).
+If you run into issues you may find a fix in the sections below. Otherwise please open a new issue and let us know.
+
+### Expected file structure:
+Follow this filestructure for you weights, data, folders and checkpoints<br>
+<br>
+- data
+  - test
+  - test_adv_v1
+  - test_adv_v2
+  - test_adv_v3
+  - train
+  - val
+- models
+  - checkpoints
+- eval_results
+- polimi
+  - weights
+- stylegan3
+
+
+### Installing dependencies
+
+1. ```pip install requirements.txt```
+
+2. Download the model weights for Polimi [this link](https://www.dropbox.com/s/g1z2u8wl6srjh6v/weigths.zip) unzip them into the polimi/weights folder
+```bash
+wget https://www.dropbox.com/s/g1z2u8wl6srjh6v/weigths.zip
+unzip weigths.zip -d path/to/this/repo/polimi/weights
+```
+
+3. Download the weights for our models (moriarty, sherlock, watson) from [this link](https://polybox.ethz.ch/index.php/s/V3WwMQ3wnrW6rGN?path=%2Fcheckpoints) and place them into models/checkpoints
+```bash
+wget https://polybox.ethz.ch/index.php/s/V3WwMQ3wnrW6rGN/download?path=%2Fcheckpoints&files=moriaty.pt
+wget https://polybox.ethz.ch/index.php/s/V3WwMQ3wnrW6rGN/download?path=%2Fcheckpoints&files=watson.pt
+wget https://polybox.ethz.ch/index.php/s/V3WwMQ3wnrW6rGN/download?path=%2Fcheckpoints&files=sherlock.pt
+```
+
+4. Download the data and unzip the differnt data folders into data/.
+
+- [train](https://polybox.ethz.ch/index.php/s/V3WwMQ3wnrW6rGN?path=%2Ftrain)
+- [val](https://polybox.ethz.ch/index.php/s/V3WwMQ3wnrW6rGN?path=%2Fval)
+- [test](https://polybox.ethz.ch/index.php/s/V3WwMQ3wnrW6rGN?path=%2Ftest)
+- [test_adv_v1](https://polybox.ethz.ch/index.php/s/V3WwMQ3wnrW6rGN?path=%2Ftest_adv_v1)
+- [test_adv_v2](https://polybox.ethz.ch/index.php/s/V3WwMQ3wnrW6rGN?path=%2Ftest_adv_v2)
+- [test_adv_v3](https://polybox.ethz.ch/index.php/s/V3WwMQ3wnrW6rGN?path=%2Ftest_adv_v3)
+
+5. Finish.
+
+#### Installing Advertorch from source
+The current pip release does not contain the newest code changes. Either directely install from [source](https://github.com/BorealisAI/) or perfrom the following steps:
+
+1. Add the zero_gradients(x) function to advertorch/attacks/utils.py (Carful: Do this in your corresponding conda environment!). See this [thread](https://discuss.pytorch.org/t/from-torch-autograd-gradcheck-import-zero-gradients/127462).
 ```
 def zero_gradients(x):
     if isinstance(x, torch.Tensor):
@@ -64,10 +110,11 @@ def zero_gradients(x):
             x.grad.detach_()
             x.grad.zero_()
 ```
-3. Replace line 14 in advertorch/attacks/fast_adaptive_boundary.py with: 
+
+2. Replace line 14 in advertorch/attacks/fast_adaptive_boundary.py with: 
 ```from advertorch.attacks.utils import zero_gradients```
 
-### Running Polimi for CPU (& "old" GPU)
+#### Running Polimi for CPU (& "old" GPU)
 
 1. Follow approach presented by authors in polimi/README.md
 2. If it didn't work to resolve environment (like for me: Alex), try
@@ -86,9 +133,9 @@ but this was my workable setup that resembled closest the author's environment.
 4. Set model_name and other params in config.yaml accordingly
 5. Run eval.py and obtain predictions in eval_results folder, manually save ROC plot
 
-### Running Polimi for 3090
+#### Running Polimi for 3090
 
-1. Create and activate the conda environment
+The following conda envrionment should be enough to just run polimi.
 ```bash
 conda create --name polimi
 conda activate polimi
@@ -97,14 +144,3 @@ pip install albumentations
 pip install efficientnet_pytorch
 pip install pytorchcv
 ```
-
-2. Download the model's weights from [this link](https://www.dropbox.com/s/g1z2u8wl6srjh6v/weigths.zip) and unzip the file under the main folder
-```bash
-wget https://www.dropbox.com/s/g1z2u8wl6srjh6v/weigths.zip
-unzip weigths.zip
-```
-
-## Run in Visual Studio Code
-
-1. Open Main.py from the root folder
-2. Run it

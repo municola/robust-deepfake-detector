@@ -196,13 +196,13 @@ def load_data(data_path, batch_size, model_name, seed, num_workers, adverserial_
         if adverserial_training == True:
             print("Use transformation for ResNet18 but without normalization")
             transform = transforms.Compose([
-                transforms.RandomResizedCrop(224),
+                transforms.Resize(224),
                 transforms.ToTensor(),
             ])
         else:
             print("Use transformation for ResNet18 with normalization")
             transform = transforms.Compose([
-                transforms.RandomResizedCrop(224),
+                transforms.Resize(224),
                 transforms.ToTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])

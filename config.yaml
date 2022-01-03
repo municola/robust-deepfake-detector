@@ -1,4 +1,4 @@
-model_name: "Moriaty" # Moriaty_untrained, Moriaty, Lestrade, Watson, Sherlock, Polimi
+model_name: "Watson" # Moriaty_untrained, Moriaty, Lestrade, Watson, Sherlock, Polimi
 
 finetune: True # To unfreeze all layers (from pretrained network)
 
@@ -13,7 +13,7 @@ train_path: "./data/train"
 val_path: "./data/val"
 test_path: "./data/test"
 eval_res_path: "./eval_results"
-test_adv_path: "./data/test_adv_v3" # test_adv_v1 (FGSM 0.01), test_adv_v2 (LinPGD 0.05), test_adv_v3 (LinPGD 0.01)
+test_adv_path: "./data/test_adv_v4" # test_adv_v1 (FGSM 0.01), test_adv_v2 (LinPGD 0.05), test_adv_v3 (LinPGD 0.01)
 
 test_adv_bool: True # Evaluate on the adversarial test set (True, False)
 
